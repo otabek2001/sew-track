@@ -1,0 +1,87 @@
+# Ruff configuration for SEW-TRACK project
+
+# Exclude a variety of commonly ignored directories
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    "*/migrations/*",
+    "staticfiles",
+]
+
+# Same as Black
+line-length = 120
+indent-width = 4
+
+# Assume Python 3.14
+target-version = "py314"
+
+[lint]
+# Enable Pyflakes (`F`) and a subset of pycodestyle (`E`) codes by default
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # Pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+    "ARG", # flake8-unused-arguments
+    "SIM", # flake8-simplify
+]
+
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "B008",  # do not perform function calls in argument defaults
+    "B904",  # allow raising exceptions without from inside except
+    "ARG001", # unused function argument (common in Django)
+    "ARG002", # unused method argument (common in Django)
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[format]
+# Like Black, use double quotes for strings
+quote-style = "single"
+
+# Like Black, indent with spaces, rather than tabs
+indent-style = "space"
+
+# Like Black, respect magic trailing commas
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending
+line-ending = "auto"
+
+[lint.per-file-ignores]
+"__init__.py" = ["F401"]  # unused imports in __init__.py
+"tests/*" = ["ARG", "S101"]  # allow asserts in tests
+"config/settings/*.py" = ["F405", "F403"]  # allow star imports in settings
+
+[lint.isort]
+known-first-party = ["apps", "config", "core", "celery_app"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+

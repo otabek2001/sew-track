@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}Profil - SEW-TRACK{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pb-24 md:pb-8 bg-gray-50">
+    <!-- Mobile Header -->
+    <header class="bg-white border-b sticky top-0 z-30 shadow-sm">
+        <div class="px-4 py-4">
+            <div class="flex items-center gap-3">
+                <a href="{% url 'dashboard:dashboard' %}" class="text-gray-600 md:hidden touch-feedback">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </a>
+                <h1 class="text-xl font-bold text-gray-800">Profil</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <div class="p-4 space-y-6">
+        <!-- Profile Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <!-- Header with gradient -->
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-24"></div>
+            
+            <!-- Avatar -->
+            <div class="px-4 pb-4 -mt-12">
+                <div class="flex items-end gap-4">
+                    <div class="w-24 h-24 rounded-full bg-white p-1 shadow-lg">
+                        <div class="w-full h-full rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-3xl font-bold">
+                            {{ user.first_name.0|default:user.username.0|upper }}
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-bold text-gray-800">
+                            {{ user.first_name }} {{ user.last_name|default:'' }}
+                        </h2>
+                        <p class="text-gray-600">{{ user.get_role_display }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Info -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-4 border-b border-gray-200">
+                <h3 class="font-bold text-gray-800">Shaxsiy ma'lumotlar</h3>
+            </div>
+            <div class="divide-y divide-gray-100">
+                <div class="p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="user" class="w-5 h-5 text-gray-400"></i>
+                        <div>
+                            <p class="text-sm text-gray-500">Foydalanuvchi nomi</p>
+                            <p class="font-medium text-gray-800">{{ user.username }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if user.email %}
+                <div class="p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="mail" class="w-5 h-5 text-gray-400"></i>
+                        <div>
+                            <p class="text-sm text-gray-500">Email</p>
+                            <p class="font-medium text-gray-800">{{ user.email }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if user.phone %}
+                <div class="p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="phone" class="w-5 h-5 text-gray-400"></i>
+                        <div>
+                            <p class="text-sm text-gray-500">Telefon</p>
+                            <p class="font-medium text-gray-800">{{ user.phone }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="shield" class="w-5 h-5 text-gray-400"></i>
+                        <div>
+                            <p class="text-sm text-gray-500">Rol</p>
+                            <p class="font-medium text-gray-800">{{ user.get_role_display }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-4 border-b border-gray-200">
+                <h3 class="font-bold text-gray-800">Sozlamalar</h3>
+            </div>
+            <div class="divide-y divide-gray-100">
+                <a href="#" class="p-4 flex items-center justify-between hover:bg-gray-50 transition touch-feedback">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="key" class="w-5 h-5 text-gray-400"></i>
+                        <span class="font-medium text-gray-800">Parolni o'zgartirish</span>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                </a>
+                
+                <div class="p-4 flex items-center justify-between" x-data="{ notifications: true }">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="bell" class="w-5 h-5 text-gray-400"></i>
+                        <span class="font-medium text-gray-800">Bildirishnomalar</span>
+                    </div>
+                    <button 
+                        @click="notifications = !notifications"
+                        :class="notifications ? 'bg-blue-600' : 'bg-gray-300'"
+                        class="relative inline-flex h-6 w-11 items-center rounded-full transition touch-feedback"
+                    >
+                        <span 
+                            :class="notifications ? 'translate-x-6' : 'translate-x-1'"
+                            class="inline-block h-4 w-4 transform rounded-full bg-white transition"
+                        ></span>
+                    </button>
+                </div>
+                
+                <a href="#" class="p-4 flex items-center justify-between hover:bg-gray-50 transition touch-feedback">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="globe" class="w-5 h-5 text-gray-400"></i>
+                        <span class="font-medium text-gray-800">Til / Language</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-gray-500">O'zbekcha</span>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Logout Button -->
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button 
+                type="submit"
+                class="
+                    w-full h-14
+                    bg-red-50 hover:bg-red-100
+                    text-red-600 font-bold rounded-xl
+                    transition touch-feedback
+                    flex items-center justify-center gap-2
+                "
+            >
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+                <span>Chiqish</span>
+            </button>
+        </form>
+
+        <!-- App Info -->
+        <div class="text-center text-sm text-gray-500 py-4">
+            <p>SEW-TRACK v1.0.0</p>
+            <p class="mt-1">© 2024 Barcha huquqlar himoyalangan</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

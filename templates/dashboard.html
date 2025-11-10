@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Asosiy sahifa - SEW-TRACK{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pb-24 md:pb-8">
+    <!-- Mobile Header -->
+    <header class="bg-white border-b sticky top-0 z-30 shadow-sm">
+        <div class="px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-xl font-bold text-gray-800">Salom, {{ user.first_name|default:user.username }}!</h1>
+                    <p class="text-sm text-gray-500">{{ user.get_role_display }}</p>
+                </div>
+                <button 
+                    @click="$dispatch('open-notifications')"
+                    class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg touch-feedback"
+                >
+                    <i data-lucide="bell" class="w-6 h-6"></i>
+                    <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="p-4 space-y-6">
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <!-- Today's Work -->
+            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white shadow-lg">
+                <div class="flex items-center justify-between mb-2">
+                    <i data-lucide="clipboard-check" class="w-8 h-8 opacity-80"></i>
+                </div>
+                <p class="text-2xl font-bold">{{ stats.today_tasks }}</p>
+                <p class="text-sm opacity-90">Bugungi vazifalar</p>
+            </div>
+            
+            <!-- Completed -->
+            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white shadow-lg">
+                <div class="flex items-center justify-between mb-2">
+                    <i data-lucide="check-circle" class="w-8 h-8 opacity-80"></i>
+                </div>
+                <p class="text-2xl font-bold">{{ stats.completed }}</p>
+                <p class="text-sm opacity-90">Bajarilgan</p>
+            </div>
+            
+            <!-- In Progress -->
+            <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-4 text-white shadow-lg">
+                <div class="flex items-center justify-between mb-2">
+                    <i data-lucide="clock" class="w-8 h-8 opacity-80"></i>
+                </div>
+                <p class="text-2xl font-bold">{{ stats.in_progress }}</p>
+                <p class="text-sm opacity-90">Jarayonda</p>
+            </div>
+            
+            <!-- Earnings -->
+            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 text-white shadow-lg">
+                <div class="flex items-center justify-between mb-2">
+                    <i data-lucide="wallet" class="w-8 h-8 opacity-80"></i>
+                </div>
+                <p class="text-2xl font-bold">{{ stats.earnings|floatformat:0 }}</p>
+                <p class="text-sm opacity-90">Bugungi daromad</p>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                <h2 class="text-lg font-bold text-gray-800">So'nggi vazifalar</h2>
+                <a href="#" class="text-blue-600 text-sm font-medium">
+                    Barchasi →
+                </a>
+            </div>
+            
+            <div 
+                hx-get="{% url 'dashboard:recent-tasks' %}"
+                hx-trigger="load"
+                hx-target="this"
+                hx-swap="innerHTML"
+                class="divide-y divide-gray-100"
+            >
+                <!-- Loading skeleton -->
+                <div class="p-4 animate-pulse">
+                    <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+                <div class="p-4 animate-pulse">
+                    <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions (Mobile Only) -->
+        <div class="md:hidden bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">Tez amallar</h2>
+            <div class="grid grid-cols-3 gap-3">
+                <a href="#" class="flex flex-col items-center gap-2 p-4 bg-blue-50 rounded-lg touch-feedback">
+                    <i data-lucide="plus-circle" class="w-8 h-8 text-blue-600"></i>
+                    <span class="text-xs text-center text-gray-700">Yangi yozuv</span>
+                </a>
+                
+                <a href="#" class="flex flex-col items-center gap-2 p-4 bg-green-50 rounded-lg touch-feedback">
+                    <i data-lucide="list" class="w-8 h-8 text-green-600"></i>
+                    <span class="text-xs text-center text-gray-700">Vazifalar</span>
+                </a>
+                
+                <a href="{% url 'statistics' %}" class="flex flex-col items-center gap-2 p-4 bg-purple-50 rounded-lg touch-feedback">
+                    <i data-lucide="trending-up" class="w-8 h-8 text-purple-600"></i>
+                    <span class="text-xs text-center text-gray-700">Statistika</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Desktop Sidebar -->
+        <div class="hidden md:block">
+            <!-- Desktop specific content -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-refresh stats every 60 seconds
+    setInterval(() => {
+        htmx.trigger('#stats-container', 'refresh');
+    }, 60000);
+</script>
+{% endblock %}
+

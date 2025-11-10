@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Kirish - SEW-TRACK{% endblock %}
+{% block body_class %}bg-gradient-to-br from-blue-500 to-blue-700{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <div class="bg-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <i data-lucide="factory" class="w-10 h-10 text-blue-600"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">SEW-TRACK</h1>
+            <p class="text-blue-100">Tikuv fabrikasi boshqaruv tizimi</p>
+        </div>
+        
+        <!-- Login Form -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Tizimga kirish</h2>
+            
+            {% if messages %}
+                {% for message in messages %}
+                <div class="mb-4 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-blue-50 text-blue-700{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+            
+            <form method="post" action="{% url 'login' %}" class="space-y-5">
+                {% csrf_token %}
+                
+                <!-- Username -->
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
+                        Foydalanuvchi nomi
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i data-lucide="user" class="w-5 h-5 text-gray-400"></i>
+                        </div>
+                        <input 
+                            type="text" 
+                            id="username"
+                            name="username" 
+                            required
+                            autofocus
+                            class="
+                                w-full h-14 pl-12 pr-4
+                                border-2 border-gray-300 rounded-lg
+                                text-base
+                                focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none
+                                transition
+                            "
+                            placeholder="Foydalanuvchi nomi"
+                        >
+                    </div>
+                </div>
+                
+                <!-- Password -->
+                <div x-data="{ showPassword: false }">
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                        Parol
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i data-lucide="lock" class="w-5 h-5 text-gray-400"></i>
+                        </div>
+                        <input 
+                            :type="showPassword ? 'text' : 'password'"
+                            id="password"
+                            name="password" 
+                            required
+                            class="
+                                w-full h-14 pl-12 pr-12
+                                border-2 border-gray-300 rounded-lg
+                                text-base
+                                focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none
+                                transition
+                            "
+                            placeholder="Parol"
+                        >
+                        <button 
+                            type="button"
+                            @click="showPassword = !showPassword"
+                            class="absolute inset-y-0 right-0 pr-4 flex items-center touch-feedback"
+                        >
+                            <i :data-lucide="showPassword ? 'eye-off' : 'eye'" class="w-5 h-5 text-gray-400"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Remember Me -->
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center">
+                        <input 
+                            type="checkbox" 
+                            name="remember_me"
+                            class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        >
+                        <span class="ml-2 text-sm text-gray-600">Eslab qolish</span>
+                    </label>
+                </div>
+                
+                <!-- Submit Button -->
+                <button 
+                    type="submit"
+                    class="
+                        w-full h-14
+                        bg-blue-600 hover:bg-blue-700
+                        active:scale-[0.98]
+                        text-white text-lg font-bold rounded-lg
+                        shadow-lg
+                        transition
+                        flex items-center justify-center gap-2
+                    "
+                >
+                    <i data-lucide="log-in" class="w-5 h-5"></i>
+                    <span>Kirish</span>
+                </button>
+            </form>
+        </div>
+        
+        <!-- Footer -->
+        <div class="text-center mt-6 text-white text-sm">
+            <p>© 2024 SEW-TRACK. Barcha huquqlar himoyalangan.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Reinitialize icons after Alpine.js runs
+    document.addEventListener('alpine:initialized', () => {
+        setTimeout(() => lucide.createIcons(), 100);
+    });
+</script>
+{% endblock %}
+

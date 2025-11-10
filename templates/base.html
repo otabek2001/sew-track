@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="description" content="SEW-TRACK - Tikuv fabrikasi boshqaruv tizimi">
+    
+    <title>{% block title %}SEW-TRACK{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        /* Prevent zoom on input focus (iOS) */
+        input[type="text"],
+        input[type="number"],
+        input[type="email"],
+        input[type="tel"],
+        select,
+        textarea {
+            font-size: 16px !important;
+        }
+        
+        /* Safe area for iOS notch */
+        body {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        /* Loading spinner */
+        .htmx-indicator {
+            display: none;
+        }
+        .htmx-request .htmx-indicator {
+            display: inline-block;
+        }
+        
+        /* Touch feedback */
+        .touch-feedback:active {
+            transform: scale(0.97);
+            transition: transform 0.1s;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen {% block body_class %}{% endblock %}">
+    <!-- Loading Indicator -->
+    <div id="loading-overlay" class="htmx-indicator fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 flex flex-col items-center">
+            <svg class="animate-spin h-10 w-10 text-blue-600 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-gray-600">Yuklanmoqda...</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    {% block content %}{% endblock %}
+    
+    <!-- Mobile Bottom Navigation (only for authenticated users) -->
+    {% if user.is_authenticated and not hide_mobile_nav %}
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40" style="padding-bottom: env(safe-area-inset-bottom);">
+        <div class="flex justify-around">
+            <a href="{% url 'dashboard:dashboard' %}" class="nav-item touch-feedback {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i data-lucide="home" class="w-6 h-6"></i>
+                <span class="text-xs mt-1">Asosiy</span>
+            </a>
+            
+            <a href="#" class="nav-item touch-feedback {% if 'tasks' in request.path %}active{% endif %}">
+                <i data-lucide="clipboard-list" class="w-6 h-6"></i>
+                <span class="text-xs mt-1">Vazifalar</span>
+            </a>
+            
+            <a href="#" class="nav-item-fab touch-feedback">
+                <div class="bg-blue-600 rounded-full p-3 -mt-8 shadow-lg">
+                    <i data-lucide="plus" class="w-8 h-8 text-white"></i>
+                </div>
+                <span class="text-xs mt-1 text-blue-600 font-medium">Qo'shish</span>
+            </a>
+            
+            <a href="{% url 'statistics' %}" class="nav-item touch-feedback {% if 'statistics' in request.path %}active{% endif %}">
+                <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
+                <span class="text-xs mt-1">Statistika</span>
+            </a>
+            
+            <a href="{% url 'profile' %}" class="nav-item touch-feedback {% if 'profile' in request.path %}active{% endif %}">
+                <i data-lucide="user" class="w-6 h-6"></i>
+                <span class="text-xs mt-1">Profil</span>
+            </a>
+        </div>
+    </nav>
+    
+    <style>
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: #6b7280;
+            text-decoration: none;
+        }
+        .nav-item.active {
+            color: #2563eb;
+            font-weight: 500;
+        }
+        .nav-item-fab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+        }
+    </style>
+    {% endif %}
+    
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2">
+        <!-- Toasts will be injected here -->
+    </div>
+    
+    <!-- Scripts -->
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                warning: 'bg-yellow-500',
+                info: 'bg-blue-500'
+            };
+            
+            toast.className = `${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`;
+            toast.textContent = message;
+            
+            document.getElementById('toast-container').appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 100);
+            
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
+        // HTMX events
+        document.body.addEventListener('htmx:afterRequest', function(event) {
+            if (event.detail.successful) {
+                const message = event.detail.xhr.getResponseHeader('X-Toast-Message');
+                if (message) {
+                    showToast(message, 'success');
+                }
+            } else {
+                showToast('Xatolik yuz berdi. Qaytadan urinib ko\'ring.', 'error');
+            }
+        });
+        
+        // Prevent double-tap zoom on buttons (iOS)
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

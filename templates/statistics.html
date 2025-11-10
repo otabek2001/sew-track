@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block title %}Statistika - SEW-TRACK{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pb-24 md:pb-8 bg-gray-50">
+    <!-- Mobile Header -->
+    <header class="bg-white border-b sticky top-0 z-30 shadow-sm">
+        <div class="px-4 py-4">
+            <div class="flex items-center gap-3">
+                <a href="{% url 'dashboard:dashboard' %}" class="text-gray-600 md:hidden touch-feedback">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </a>
+                <h1 class="text-xl font-bold text-gray-800">Statistika</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <div class="p-4 space-y-6">
+        <!-- Period Selector -->
+        <div x-data="{ period: 'today' }" class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <div class="flex gap-2 overflow-x-auto">
+                <button 
+                    @click="period = 'today'"
+                    :class="period === 'today' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
+                    class="px-4 py-2 rounded-lg font-medium whitespace-nowrap transition touch-feedback"
+                >
+                    Bugun
+                </button>
+                <button 
+                    @click="period = 'week'"
+                    :class="period === 'week' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
+                    class="px-4 py-2 rounded-lg font-medium whitespace-nowrap transition touch-feedback"
+                >
+                    Bu hafta
+                </button>
+                <button 
+                    @click="period = 'month'"
+                    :class="period === 'month' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
+                    class="px-4 py-2 rounded-lg font-medium whitespace-nowrap transition touch-feedback"
+                >
+                    Bu oy
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <!-- Total Tasks -->
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+                <div class="flex items-center gap-2 mb-2">
+                    <i data-lucide="clipboard-list" class="w-5 h-5 text-blue-600"></i>
+                    <p class="text-sm text-gray-600">Vazifalar</p>
+                </div>
+                <p class="text-2xl font-bold text-gray-800">{{ stats.daily.tasks }}</p>
+                <p class="text-xs text-green-600 mt-1">+12% avvalgidan</p>
+            </div>
+
+            <!-- Earnings -->
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+                <div class="flex items-center gap-2 mb-2">
+                    <i data-lucide="wallet" class="w-5 h-5 text-green-600"></i>
+                    <p class="text-sm text-gray-600">Daromad</p>
+                </div>
+                <p class="text-2xl font-bold text-gray-800">{{ stats.daily.earnings|floatformat:0 }}</p>
+                <p class="text-xs text-gray-500 mt-1">so'm</p>
+            </div>
+
+            <!-- Average per Task -->
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+                <div class="flex items-center gap-2 mb-2">
+                    <i data-lucide="trending-up" class="w-5 h-5 text-purple-600"></i>
+                    <p class="text-sm text-gray-600">O'rtacha</p>
+                </div>
+                <p class="text-2xl font-bold text-gray-800">7,083</p>
+                <p class="text-xs text-gray-500 mt-1">so'm/vazifa</p>
+            </div>
+
+            <!-- Completion Rate -->
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+                <div class="flex items-center gap-2 mb-2">
+                    <i data-lucide="target" class="w-5 h-5 text-yellow-600"></i>
+                    <p class="text-sm text-gray-600">Bajarilish</p>
+                </div>
+                <p class="text-2xl font-bold text-gray-800">95%</p>
+                <p class="text-xs text-green-600 mt-1">Yaxshi!</p>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Kunlik faollik</h3>
+            <canvas id="activityChart" class="w-full" style="height: 250px;"></canvas>
+        </div>
+
+        <!-- Weekly Comparison -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Haftalik taqqoslash</h3>
+            <div class="space-y-3">
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-600">Dushanba</span>
+                        <span class="font-medium">45 vazifa</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: 75%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-600">Seshanba</span>
+                        <span class="font-medium">52 vazifa</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: 87%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-600">Chorshanba</span>
+                        <span class="font-medium">48 vazifa</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: 80%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-600">Payshanba</span>
+                        <span class="font-medium">60 vazifa</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-green-600 h-2 rounded-full" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-600">Juma</span>
+                        <span class="font-medium">55 vazifa</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: 92%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('activityChart');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'],
+            datasets: [{
+                label: 'Bajarilgan vazifalar',
+                data: [2, 5, 8, 12, 10, 15, 18, 21, 23],
+                borderColor: 'rgb(37, 99, 235)',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 5
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+
