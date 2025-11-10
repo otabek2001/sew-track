@@ -75,3 +75,128 @@ class Task(TimeStampedModel):
     def get_name(self, language='uz'):
         """Get task name in specified language."""
         return self.name_uz if language == 'uz' else self.name_ru
+
+
+class WorkRecord(TimeStampedModel):
+    """
+    WorkRecord model - daily work records from employees.
+    
+    Represents work completed by an employee on a specific product/task.
+    """
+    
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Pending'
+        COMPLETED = 'completed', 'Completed'
+        REJECTED = 'rejected', 'Rejected'
+        APPROVED = 'approved', 'Approved'
+    
+    employee = models.ForeignKey(
+        'employees.Employee',
+        on_delete=models.CASCADE,
+        related_name='work_records',
+        verbose_name='Employee'
+    )
+    product = models.ForeignKey(
+        'products.Product',
+        on_delete=models.CASCADE,
+        related_name='work_records',
+        verbose_name='Product'
+    )
+    task = models.ForeignKey(
+        Task,
+        on_delete=models.CASCADE,
+        related_name='work_records',
+        verbose_name='Task'
+    )
+    product_task = models.ForeignKey(
+        'products.ProductTask',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='work_records',
+        verbose_name='Product Task Link',
+        help_text='Link to ProductTask for price lookup'
+    )
+    quantity = models.PositiveIntegerField(
+        verbose_name='Quantity',
+        help_text='Number of units completed'
+    )
+    price_per_unit = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name='Price Per Unit',
+        help_text='Price per unit in UZS'
+    )
+    total_payment = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        verbose_name='Total Payment',
+        help_text='Calculated: quantity * price_per_unit'
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+        verbose_name='Status'
+    )
+    work_date = models.DateField(
+        verbose_name='Work Date',
+        help_text='Date when work was performed'
+    )
+    notes = models.TextField(
+        blank=True,
+        verbose_name='Notes'
+    )
+    approved_by = models.ForeignKey(
+        'employees.Employee',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='approved_work_records',
+        verbose_name='Approved By'
+    )
+    approved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Approved At'
+    )
+    
+    class Meta:
+        db_table = 'work_records'
+        verbose_name = 'Work Record'
+        verbose_name_plural = 'Work Records'
+        ordering = ['-work_date', '-created_at']
+        indexes = [
+            models.Index(fields=['employee', 'work_date']),
+            models.Index(fields=['status']),
+            models.Index(fields=['work_date']),
+            models.Index(fields=['product', 'task']),
+        ]
+    
+    def __str__(self):
+        return f'{self.employee.full_name} - {self.product.article_code} - {self.task.code} ({self.quantity})'
+    
+    def save(self, *args, **kwargs):
+        """Calculate total payment before saving."""
+        if not self.total_payment or self.total_payment == 0:
+            self.total_payment = self.quantity * self.price_per_unit
+        super().save(*args, **kwargs)
+    
+    def approve(self, approved_by):
+        """Approve this work record."""
+        from django.utils import timezone
+        
+        self.status = self.Status.APPROVED
+        self.approved_by = approved_by
+        self.approved_at = timezone.now()
+        self.save(update_fields=['status', 'approved_by', 'approved_at', 'updated_at'])
+    
+    def reject(self):
+        """Reject this work record."""
+        self.status = self.Status.REJECTED
+        self.save(update_fields=['status', 'updated_at'])
+    
+    def complete(self):
+        """Mark as completed."""
+        self.status = self.Status.COMPLETED
+        self.save(update_fields=['status', 'updated_at'])

@@ -7,10 +7,10 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from datetime import date, timedelta
+import json
 
-# Placeholder imports - will be implemented when models are ready
-# from apps.tasks.models import Task, WorkRecord
-# from apps.employees.models import Employee
+from apps.tasks.models import Task, WorkRecord
+from apps.employees.models import Employee
 
 
 @login_required
@@ -22,37 +22,36 @@ def dashboard(request):
     user = request.user
     today = date.today()
     
-    # Mock data for now - replace with actual queries
+    # Default stats
     stats = {
-        'today_tasks': 12,
-        'completed': 8,
-        'in_progress': 4,
-        'earnings': 85000,
+        'today_tasks': 0,
+        'completed': 0,
+        'in_progress': 0,
+        'earnings': 0,
     }
     
-    # TODO: Implement actual queries when models are ready
-    # if hasattr(user, 'employee'):
-    #     stats = {
-    #         'today_tasks': WorkRecord.objects.filter(
-    #             employee=user.employee,
-    #             date=today
-    #         ).count(),
-    #         'completed': WorkRecord.objects.filter(
-    #             employee=user.employee,
-    #             date=today,
-    #             status='completed'
-    #         ).count(),
-    #         'in_progress': WorkRecord.objects.filter(
-    #             employee=user.employee,
-    #             date=today,
-    #             status='in_progress'
-    #         ).count(),
-    #         'earnings': WorkRecord.objects.filter(
-    #             employee=user.employee,
-    #             date=today,
-    #             status='completed'
-    #         ).aggregate(total=Sum('payment_amount'))['total'] or 0,
-    #     }
+    # Get real data if user has employee record
+    if hasattr(user, 'employee'):
+        employee = user.employee
+        
+        # Today's statistics
+        today_records = WorkRecord.objects.filter(
+            employee=employee,
+            work_date=today
+        )
+        
+        stats = {
+            'today_tasks': today_records.count(),
+            'completed': today_records.filter(
+                status__in=[WorkRecord.Status.COMPLETED, WorkRecord.Status.APPROVED]
+            ).count(),
+            'in_progress': today_records.filter(
+                status=WorkRecord.Status.PENDING
+            ).count(),
+            'earnings': today_records.aggregate(
+                total=Sum('total_payment')
+            )['total'] or 0,
+        }
     
     return render(request, 'dashboard.html', {
         'stats': stats,
@@ -66,17 +65,15 @@ def recent_tasks(request):
     Returns only the HTML fragment for dynamic loading.
     """
     user = request.user
-    
-    # Mock data - replace with actual query
     tasks = []
     
-    # TODO: Implement when models are ready
-    # if hasattr(user, 'employee'):
-    #     tasks = WorkRecord.objects.filter(
-    #         employee=user.employee
-    #     ).select_related(
-    #         'product', 'operation'
-    #     ).order_by('-created_at')[:5]
+    # Get recent work records
+    if hasattr(user, 'employee'):
+        tasks = WorkRecord.objects.filter(
+            employee=user.employee
+        ).select_related(
+            'product', 'task', 'product_task'
+        ).order_by('-created_at')[:5]
     
     return render(request, 'dashboard/_recent_tasks.html', {
         'tasks': tasks,
@@ -93,21 +90,68 @@ def statistics(request):
     week_start = today - timedelta(days=today.weekday())
     month_start = today.replace(day=1)
     
-    # Mock data
+    # Default stats
     stats = {
-        'daily': {
-            'tasks': 12,
-            'earnings': 85000,
-        },
-        'weekly': {
-            'tasks': 67,
-            'earnings': 523000,
-        },
-        'monthly': {
-            'tasks': 234,
-            'earnings': 1850000,
-        },
+        'daily': {'tasks': 0, 'earnings': 0},
+        'weekly': {'tasks': 0, 'earnings': 0},
+        'monthly': {'tasks': 0, 'earnings': 0},
+        'chart_data': {'labels': [], 'data': []},
     }
+    
+    # Get real data if user has employee record
+    if hasattr(user, 'employee'):
+        employee = user.employee
+        
+        # Daily stats
+        daily_records = WorkRecord.objects.filter(
+            employee=employee,
+            work_date=today
+        )
+        stats['daily'] = {
+            'tasks': daily_records.count(),
+            'earnings': daily_records.aggregate(Sum('total_payment'))['total_payment__sum'] or 0,
+        }
+        
+        # Weekly stats
+        weekly_records = WorkRecord.objects.filter(
+            employee=employee,
+            work_date__gte=week_start,
+            work_date__lte=today
+        )
+        stats['weekly'] = {
+            'tasks': weekly_records.count(),
+            'earnings': weekly_records.aggregate(Sum('total_payment'))['total_payment__sum'] or 0,
+        }
+        
+        # Monthly stats
+        monthly_records = WorkRecord.objects.filter(
+            employee=employee,
+            work_date__year=today.year,
+            work_date__month=today.month
+        )
+        stats['monthly'] = {
+            'tasks': monthly_records.count(),
+            'earnings': monthly_records.aggregate(Sum('total_payment'))['total_payment__sum'] or 0,
+        }
+        
+        # Chart data - last 7 days
+        chart_labels = []
+        chart_data = []
+        for i in range(6, -1, -1):
+            day = today - timedelta(days=i)
+            chart_labels.append(day.strftime('%d.%m'))
+            
+            day_count = WorkRecord.objects.filter(
+                employee=employee,
+                work_date=day
+            ).aggregate(Sum('quantity'))['quantity__sum'] or 0
+            
+            chart_data.append(day_count)
+        
+        stats['chart_data'] = {
+            'labels': json.dumps(chart_labels),
+            'data': json.dumps(chart_data),
+        }
     
     return render(request, 'statistics.html', {
         'stats': stats,

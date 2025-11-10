@@ -1,0 +1,10 @@
+<option value="">Operatsiyani tanlang</option>
+{% for pt in product_tasks %}
+<option value="{{ pt.task.id }}" data-price="{{ pt.get_price }}">
+    {{ pt.task.code }} - {{ pt.task.name_uz }} ({{ pt.get_price|floatformat:0 }} so'm)
+</option>
+{% endfor %}
+{% if not product_tasks %}
+<option value="">Bu mahsulot uchun operatsiyalar topilmadi</option>
+{% endif %}
+

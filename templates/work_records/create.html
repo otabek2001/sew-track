@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+
+{% block title %}Yangi yozuv - SEW-TRACK{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pb-24 md:pb-8 bg-gray-50">
+    <!-- Mobile Header -->
+    <header class="bg-white border-b sticky top-0 z-30 shadow-sm">
+        <div class="px-4 py-4">
+            <div class="flex items-center gap-3">
+                <a href="{% url 'tasks:work_records_list' %}" class="text-gray-600 touch-feedback">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </a>
+                <h1 class="text-xl font-bold text-gray-800">Yangi yozuv</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Form -->
+    <div class="p-4">
+        {% if error %}
+        <div class="mb-4 bg-red-50 border-2 border-red-200 rounded-lg p-4">
+            <p class="text-red-700 font-medium">❌ {{ error }}</p>
+        </div>
+        {% endif %}
+
+        <form 
+            method="post"
+            action="{% url 'tasks:work_record_create' %}"
+            x-data="workRecordForm()"
+            class="space-y-4"
+        >
+            {% csrf_token %}
+            
+            <!-- Product Select -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Mahsulot <span class="text-red-500">*</span>
+                </label>
+                <select 
+                    name="product"
+                    id="product-select"
+                    x-model="selectedProduct"
+                    @change="onProductChange()"
+                    required
+                    class="
+                        w-full h-14 px-4 
+                        border-2 border-gray-300 rounded-lg
+                        text-base
+                        focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none
+                        transition
+                    "
+                >
+                    <option value="">Mahsulotni tanlang</option>
+                    {% for product in products %}
+                    <option value="{{ product.id }}">{{ product.article_code }} - {{ product.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Task Select (loaded dynamically) -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Operatsiya <span class="text-red-500">*</span>
+                </label>
+                <select 
+                    name="task"
+                    x-model="selectedTask"
+                    @change="calculateTotal()"
+                    required
+                    :disabled="!selectedProduct || loadingTasks"
+                    id="task-select"
+                    class="
+                        w-full h-14 px-4 
+                        border-2 border-gray-300 rounded-lg
+                        text-base
+                        focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none
+                        transition
+                        disabled:opacity-50 disabled:cursor-not-allowed
+                    "
+                >
+                    <option value="">Avval mahsulotni tanlang</option>
+                    <template x-if="loadingTasks">
+                        <option value="">Yuklanmoqda...</option>
+                    </template>
+                    <template x-for="task in availableTasks" :key="task.id">
+                        <option :value="task.id" x-text="task.name"></option>
+                    </template>
+                </select>
+            </div>
+
+            <!-- Quantity Input -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Miqdor (dona) <span class="text-red-500">*</span>
+                </label>
+                <input 
+                    type="number" 
+                    name="quantity"
+                    x-model="quantity"
+                    @input="calculateTotal()"
+                    min="1"
+                    required
+                    placeholder="Miqdorni kiriting"
+                    class="
+                        w-full h-14 px-4 
+                        border-2 border-gray-300 rounded-lg
+                        text-base
+                        focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none
+                        transition
+                    "
+                >
+            </div>
+
+            <!-- Notes (Optional) -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Izoh (ixtiyoriy)
+                </label>
+                <textarea 
+                    name="notes"
+                    rows="3"
+                    placeholder="Qo'shimcha ma'lumot..."
+                    class="
+                        w-full px-4 py-3
+                        border-2 border-gray-300 rounded-lg
+                        text-base
+                        focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none
+                        transition
+                    "
+                ></textarea>
+            </div>
+
+            <!-- Price Display (Real-time calculation) -->
+            <div 
+                x-show="totalPrice > 0"
+                x-transition
+                class="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-6"
+            >
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-sm text-gray-600">Birlik narxi:</span>
+                    <span class="text-lg font-bold text-gray-800" x-text="formatPrice(pricePerUnit)">0 so'm</span>
+                </div>
+                <div class="flex items-center justify-between pt-3 border-t-2 border-blue-200">
+                    <span class="text-base font-medium text-gray-700">Jami to'lov:</span>
+                    <span class="text-2xl font-bold text-blue-600" x-text="formatPrice(totalPrice)">0 so'm</span>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button 
+                type="submit"
+                :disabled="!selectedProduct || !selectedTask || !quantity || quantity <= 0"
+                class="
+                    w-full h-14
+                    bg-blue-600 hover:bg-blue-700
+                    active:scale-[0.98]
+                    text-white text-lg font-bold rounded-lg
+                    transition
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    flex items-center justify-center gap-2
+                "
+            >
+                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                <span>Saqlash</span>
+            </button>
+
+            <!-- Cancel Button -->
+            <a 
+                href="{% url 'tasks:work_records_list' %}"
+                class="
+                    w-full h-14
+                    bg-gray-100 hover:bg-gray-200
+                    text-gray-700 text-lg font-medium rounded-lg
+                    transition touch-feedback
+                    flex items-center justify-center gap-2
+                "
+            >
+                <i data-lucide="x-circle" class="w-5 h-5"></i>
+                <span>Bekor qilish</span>
+            </a>
+        </form>
+    </div>
+</div>
+
+<script>
+function workRecordForm() {
+    return {
+        selectedProduct: '',
+        selectedTask: '',
+        quantity: '',
+        pricePerUnit: 0,
+        totalPrice: 0,
+        availableTasks: [],
+        loadingTasks: false,
+        
+        async onProductChange() {
+            // Reset task and price when product changes
+            this.selectedTask = '';
+            this.pricePerUnit = 0;
+            this.totalPrice = 0;
+            this.availableTasks = [];
+            
+            console.log('Product changed:', this.selectedProduct);
+            
+            // Load tasks for selected product
+            if (!this.selectedProduct) {
+                return;
+            }
+            
+            this.loadingTasks = true;
+            
+            try {
+                const url = `/api/v1/tasks/api/product/${this.selectedProduct}/tasks/`;
+                const response = await fetch(url);
+                const html = await response.text();
+                
+                // Parse HTML options
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const options = doc.querySelectorAll('option');
+                
+                this.availableTasks = Array.from(options).map(opt => ({
+                    id: opt.value,
+                    name: opt.textContent,
+                    price: opt.getAttribute('data-price')
+                })).filter(task => task.id); // Remove empty option
+                
+                console.log('Tasks loaded:', this.availableTasks);
+                
+                // Update select element with new options
+                const select = document.getElementById('task-select');
+                select.innerHTML = '<option value="">Operatsiyani tanlang</option>';
+                this.availableTasks.forEach(task => {
+                    const option = document.createElement('option');
+                    option.value = task.id;
+                    option.textContent = task.name;
+                    option.setAttribute('data-price', task.price);
+                    select.appendChild(option);
+                });
+                
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+            } finally {
+                this.loadingTasks = false;
+            }
+        },
+        
+        async calculateTotal() {
+            if (!this.selectedProduct || !this.selectedTask || !this.quantity || this.quantity <= 0) {
+                this.totalPrice = 0;
+                return;
+            }
+            
+            try {
+                const url = `/api/v1/tasks/api/calculate-price/?product=${this.selectedProduct}&task=${this.selectedTask}&quantity=${this.quantity}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                // Parse numbers from formatted strings
+                this.pricePerUnit = parseFloat(data.per_unit.replace(/,/g, '')) || 0;
+                this.totalPrice = parseFloat(data.total.replace(/,/g, '')) || 0;
+                
+                console.log('Price calculated:', data);
+            } catch (error) {
+                console.error('Error calculating price:', error);
+                this.totalPrice = 0;
+            }
+        },
+        
+        formatPrice(price) {
+            if (!price || price === 0) return '0 so\'m';
+            return new Intl.NumberFormat('uz-UZ').format(price) + ' so\'m';
+        }
+    }
+}
+
+// Reinitialize icons when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+        console.log('✅ Icons initialized');
+    }
+});
+</script>
+{% endblock %}
+

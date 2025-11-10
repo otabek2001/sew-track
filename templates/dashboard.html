@@ -68,7 +68,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-200">
             <div class="p-4 border-b border-gray-200 flex items-center justify-between">
                 <h2 class="text-lg font-bold text-gray-800">So'nggi vazifalar</h2>
-                <a href="#" class="text-blue-600 text-sm font-medium">
+                <a href="{% url 'tasks:work_records_list' %}" class="text-blue-600 text-sm font-medium">
                     Barchasi →
                 </a>
             </div>
@@ -96,14 +96,14 @@
         <div class="md:hidden bg-white rounded-xl shadow-sm border border-gray-200 p-4">
             <h2 class="text-lg font-bold text-gray-800 mb-4">Tez amallar</h2>
             <div class="grid grid-cols-3 gap-3">
-                <a href="#" class="flex flex-col items-center gap-2 p-4 bg-blue-50 rounded-lg touch-feedback">
+                <a href="{% url 'tasks:work_record_create' %}" class="flex flex-col items-center gap-2 p-4 bg-blue-50 rounded-lg touch-feedback">
                     <i data-lucide="plus-circle" class="w-8 h-8 text-blue-600"></i>
                     <span class="text-xs text-center text-gray-700">Yangi yozuv</span>
                 </a>
                 
-                <a href="#" class="flex flex-col items-center gap-2 p-4 bg-green-50 rounded-lg touch-feedback">
+                <a href="{% url 'tasks:work_records_list' %}" class="flex flex-col items-center gap-2 p-4 bg-green-50 rounded-lg touch-feedback">
                     <i data-lucide="list" class="w-8 h-8 text-green-600"></i>
-                    <span class="text-xs text-center text-gray-700">Vazifalar</span>
+                    <span class="text-xs text-center text-gray-700">Yozuvlarim</span>
                 </a>
                 
                 <a href="{% url 'statistics' %}" class="flex flex-col items-center gap-2 p-4 bg-purple-50 rounded-lg touch-feedback">

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Xatolik - SEW-TRACK{% endblock %}
+{% block hide_mobile_nav %}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+    <div class="max-w-md w-full">
+        <!-- Error Icon -->
+        <div class="text-center mb-6">
+            <div class="w-20 h-20 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                <i data-lucide="alert-circle" class="w-10 h-10 text-red-500"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">Xatolik yuz berdi</h1>
+        </div>
+
+        <!-- Error Message -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+            <p class="text-gray-700 text-center">{{ message }}</p>
+        </div>
+
+        <!-- Actions -->
+        <div class="space-y-3">
+            <a 
+                href="{% url 'dashboard:dashboard' %}"
+                class="block w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition flex items-center justify-center gap-2 touch-feedback"
+            >
+                <i data-lucide="home" class="w-5 h-5"></i>
+                <span>Bosh sahifaga qaytish</span>
+            </a>
+            
+            <a 
+                href="javascript:history.back()"
+                class="block w-full h-12 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition flex items-center justify-center gap-2 touch-feedback"
+            >
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span>Orqaga</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

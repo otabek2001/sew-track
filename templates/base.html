@@ -8,10 +8,12 @@
     
     <title>{% block title %}SEW-TRACK{% endblock %}</title>
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
     <script>
+        // Tailwind config
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -28,14 +30,14 @@
         }
     </script>
     
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- HTMX (must be before Alpine) -->
+    <script src="https://unpkg.com/htmx.org@1.9.10" crossorigin="anonymous"></script>
     
-    <!-- HTMX -->
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/cdn.min.js" crossorigin="anonymous"></script>
     
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
     
     <!-- Custom Styles -->
     <style>
@@ -44,6 +46,7 @@
         input[type="number"],
         input[type="email"],
         input[type="tel"],
+        input[type="password"],
         select,
         textarea {
             font-size: 16px !important;
@@ -54,12 +57,17 @@
             padding-bottom: env(safe-area-inset-bottom);
         }
         
-        /* Loading spinner */
+        /* Loading spinner - HTMX will toggle this */
         .htmx-indicator {
-            display: none;
+            display: none !important;
         }
         .htmx-request .htmx-indicator {
-            display: inline-block;
+            display: flex !important;
+        }
+        
+        /* Alternative: use body class for global indicator */
+        body.htmx-request #loading-overlay {
+            display: flex !important;
         }
         
         /* Touch feedback */
@@ -67,13 +75,24 @@
             transform: scale(0.97);
             transition: transform 0.1s;
         }
+        
+        /* Ensure buttons are clickable */
+        button, a, input, select, textarea {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Fix for Alpine.js cloak */
+        [x-cloak] {
+            display: none !important;
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-50 min-h-screen {% block body_class %}{% endblock %}">
-    <!-- Loading Indicator -->
-    <div id="loading-overlay" class="htmx-indicator fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <!-- Loading Indicator (hidden by default, shown during HTMX requests) -->
+    <div id="loading-overlay" class="htmx-indicator fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
         <div class="bg-white rounded-lg p-6 flex flex-col items-center">
             <svg class="animate-spin h-10 w-10 text-blue-600 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -95,12 +114,12 @@
                 <span class="text-xs mt-1">Asosiy</span>
             </a>
             
-            <a href="#" class="nav-item touch-feedback {% if 'tasks' in request.path %}active{% endif %}">
+            <a href="{% url 'tasks:work_records_list' %}" class="nav-item touch-feedback {% if 'work-records' in request.path %}active{% endif %}">
                 <i data-lucide="clipboard-list" class="w-6 h-6"></i>
-                <span class="text-xs mt-1">Vazifalar</span>
+                <span class="text-xs mt-1">Yozuvlar</span>
             </a>
             
-            <a href="#" class="nav-item-fab touch-feedback">
+            <a href="{% url 'tasks:work_record_create' %}" class="nav-item-fab touch-feedback">
                 <div class="bg-blue-600 rounded-full p-3 -mt-8 shadow-lg">
                     <i data-lucide="plus" class="w-8 h-8 text-white"></i>
                 </div>
@@ -149,8 +168,23 @@
     
     <!-- Scripts -->
     <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Lucide icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+                console.log('✅ Lucide icons initialized');
+            } else {
+                console.error('❌ Lucide not loaded');
+            }
+            
+            // Check if all libraries loaded
+            console.log('Libraries status:');
+            console.log('- Tailwind:', typeof tailwind !== 'undefined' ? '✅' : '❌');
+            console.log('- Alpine:', typeof Alpine !== 'undefined' ? '✅' : '❌');
+            console.log('- HTMX:', typeof htmx !== 'undefined' ? '✅' : '❌');
+            console.log('- Lucide:', typeof lucide !== 'undefined' ? '✅' : '❌');
+        });
         
         // Toast notification function
         function showToast(message, type = 'success') {
@@ -165,29 +199,34 @@
             toast.className = `${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`;
             toast.textContent = message;
             
-            document.getElementById('toast-container').appendChild(toast);
-            
-            setTimeout(() => {
-                toast.classList.remove('translate-x-full');
-            }, 100);
-            
-            setTimeout(() => {
-                toast.classList.add('translate-x-full');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            const container = document.getElementById('toast-container');
+            if (container) {
+                container.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.remove('translate-x-full');
+                }, 100);
+                
+                setTimeout(() => {
+                    toast.classList.add('translate-x-full');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
         }
         
         // HTMX events
-        document.body.addEventListener('htmx:afterRequest', function(event) {
-            if (event.detail.successful) {
-                const message = event.detail.xhr.getResponseHeader('X-Toast-Message');
-                if (message) {
-                    showToast(message, 'success');
+        if (typeof htmx !== 'undefined') {
+            document.body.addEventListener('htmx:afterRequest', function(event) {
+                if (event.detail.successful) {
+                    const message = event.detail.xhr.getResponseHeader('X-Toast-Message');
+                    if (message) {
+                        showToast(message, 'success');
+                    }
+                } else {
+                    showToast('Xatolik yuz berdi. Qaytadan urinib ko\'ring.', 'error');
                 }
-            } else {
-                showToast('Xatolik yuz berdi. Qaytadan urinib ko\'ring.', 'error');
-            }
-        });
+            });
+        }
         
         // Prevent double-tap zoom on buttons (iOS)
         let lastTouchEnd = 0;

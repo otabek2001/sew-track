@@ -37,6 +37,9 @@ urlpatterns = [
     path('statistics/', views.statistics, name='statistics'),
     path('profile/', views.profile, name='profile'),
     
+    # Test page for debugging
+    path('test/', lambda request: __import__('django.shortcuts').shortcuts.render(request, 'test.html'), name='test'),
+    
     # Admin
     path('admin/', admin.site.urls),
     

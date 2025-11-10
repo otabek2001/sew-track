@@ -129,9 +129,26 @@
 </div>
 
 <script>
+    // Wait for all scripts to load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+        
+        // Log for debugging
+        console.log('Alpine loaded:', typeof Alpine !== 'undefined');
+        console.log('HTMX loaded:', typeof htmx !== 'undefined');
+        console.log('Lucide loaded:', typeof lucide !== 'undefined');
+    });
+    
     // Reinitialize icons after Alpine.js runs
     document.addEventListener('alpine:initialized', () => {
-        setTimeout(() => lucide.createIcons(), 100);
+        setTimeout(() => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }, 100);
     });
 </script>
 {% endblock %}
