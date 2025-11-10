@@ -1,0 +1,40 @@
+<!-- Today's Production -->
+<div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 border border-blue-500">
+    <div class="flex items-center justify-between mb-4">
+        <i data-lucide="package" class="w-12 h-12 text-blue-200"></i>
+        <span class="text-blue-200 text-sm font-medium">BUGUN</span>
+    </div>
+    <div class="stat-number text-5xl font-bold mb-2">{{ stats.total_production|default:0 }}</div>
+    <div class="text-blue-200 text-lg">Ishlab chiqarish (dona)</div>
+</div>
+
+<!-- Active Workers -->
+<div class="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-6 border border-green-500">
+    <div class="flex items-center justify-between mb-4">
+        <i data-lucide="users" class="w-12 h-12 text-green-200"></i>
+        <span class="text-green-200 text-sm font-medium">AKTIV</span>
+    </div>
+    <div class="stat-number text-5xl font-bold mb-2">{{ stats.active_workers|default:0 }}</div>
+    <div class="text-green-200 text-lg">Ishchilar</div>
+</div>
+
+<!-- Completed Tasks -->
+<div class="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-6 border border-purple-500">
+    <div class="flex items-center justify-between mb-4">
+        <i data-lucide="check-circle" class="w-12 h-12 text-purple-200"></i>
+        <span class="text-purple-200 text-sm font-medium">BAJARILGAN</span>
+    </div>
+    <div class="stat-number text-5xl font-bold mb-2">{{ stats.completed_tasks|default:0 }}</div>
+    <div class="text-purple-200 text-lg">Vazifalar</div>
+</div>
+
+<!-- Total Payment -->
+<div class="bg-gradient-to-br from-yellow-600 to-yellow-700 rounded-xl p-6 border border-yellow-500">
+    <div class="flex items-center justify-between mb-4">
+        <i data-lucide="dollar-sign" class="w-12 h-12 text-yellow-200"></i>
+        <span class="text-yellow-200 text-sm font-medium">TO'LOV</span>
+    </div>
+    <div class="stat-number text-4xl font-bold mb-2">{{ stats.total_payment|floatformat:0|default:0 }}</div>
+    <div class="text-yellow-200 text-lg">so'm</div>
+</div>
+

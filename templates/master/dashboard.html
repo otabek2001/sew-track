@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Master Panel - SEW-TRACK{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pb-24 md:pb-8 bg-gray-50">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-purple-600 to-purple-700 text-white sticky top-0 z-30 shadow-lg">
+        <div class="px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-xl font-bold flex items-center gap-2">
+                        <i data-lucide="shield-check" class="w-6 h-6"></i>
+                        Master Panel
+                    </h1>
+                    <p class="text-purple-200 text-sm">{{ user.get_role_display }}</p>
+                </div>
+                <a href="{% url 'dashboard:dashboard' %}" class="text-white hover:bg-purple-800 px-3 py-2 rounded-lg transition touch-feedback">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Quick Stats -->
+    <div class="p-4 space-y-4">
+        <!-- Alert for pending -->
+        {% if stats.pending_count > 0 %}
+        <div class="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
+            <div class="flex items-center gap-3">
+                <i data-lucide="alert-circle" class="w-8 h-8 text-yellow-600"></i>
+                <div class="flex-1">
+                    <p class="font-bold text-gray-800">{{ stats.pending_count }} ta yozuv kutmoqda</p>
+                    <p class="text-sm text-gray-600">Tasdiqlash uchun</p>
+                </div>
+                <a 
+                    href="{% url 'master:pending_approvals' %}"
+                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium touch-feedback"
+                >
+                    Ko'rish
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Today's Activity -->
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+                    <span class="text-sm text-gray-600">Bugun tasdiqlangan</span>
+                </div>
+                <p class="text-3xl font-bold text-green-600">{{ stats.today_approved }}</p>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <i data-lucide="x-circle" class="w-5 h-5 text-red-600"></i>
+                    <span class="text-sm text-gray-600">Bugun rad etilgan</span>
+                </div>
+                <p class="text-3xl font-bold text-red-600">{{ stats.today_rejected }}</p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">Tez amallar</h2>
+            <div class="grid grid-cols-2 gap-3">
+                <a 
+                    href="{% url 'master:pending_approvals' %}"
+                    class="flex flex-col items-center gap-2 p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition touch-feedback"
+                >
+                    <i data-lucide="clock" class="w-8 h-8 text-purple-600"></i>
+                    <span class="text-sm font-medium text-center">Kutilayotgan</span>
+                    {% if stats.pending_count > 0 %}
+                    <span class="bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full">{{ stats.pending_count }}</span>
+                    {% endif %}
+                </a>
+                
+                <a 
+                    href="{% url 'dashboard:tv' %}"
+                    class="flex flex-col items-center gap-2 p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition touch-feedback"
+                >
+                    <i data-lucide="monitor" class="w-8 h-8 text-blue-600"></i>
+                    <span class="text-sm font-medium text-center">TV Dashboard</span>
+                </a>
+                
+                <a 
+                    href="{% url 'admin:index' %}"
+                    class="flex flex-col items-center gap-2 p-4 bg-green-50 rounded-lg hover:bg-green-100 transition touch-feedback"
+                >
+                    <i data-lucide="settings" class="w-8 h-8 text-green-600"></i>
+                    <span class="text-sm font-medium text-center">Admin Panel</span>
+                </a>
+                
+                <a 
+                    href="{% url 'tasks:work_records_list' %}"
+                    class="flex flex-col items-center gap-2 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition touch-feedback"
+                >
+                    <i data-lucide="list" class="w-8 h-8 text-gray-600"></i>
+                    <span class="text-sm font-medium text-center">Barcha yozuvlar</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-4 border-b border-gray-200">
+                <h2 class="text-lg font-bold text-gray-800">So'nggi faollik</h2>
+            </div>
+            <div class="divide-y divide-gray-100">
+                {% if recent_activity %}
+                    {% for record in recent_activity %}
+                    <div class="p-4">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-800">{{ record.employee.full_name }}</p>
+                                <p class="text-sm text-gray-600">{{ record.product.name }} • {{ record.task.name_uz }}</p>
+                            </div>
+                            <span class="
+                                px-2 py-1 rounded-full text-xs font-medium ml-2
+                                {% if record.status == 'approved' %}
+                                    bg-green-100 text-green-700
+                                {% else %}
+                                    bg-red-100 text-red-700
+                                {% endif %}
+                            ">
+                                {% if record.status == 'approved' %}✅{% else %}❌{% endif %}
+                                {{ record.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span>{{ record.quantity }} dona • {{ record.total_payment|floatformat:0 }} so'm</span>
+                            <span>{{ record.updated_at|timesince }} oldin</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="p-8 text-center text-gray-500">
+                        <i data-lucide="activity" class="w-12 h-12 mx-auto mb-2 opacity-50"></i>
+                        <p>Hali faollik yo'q</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Master Navigation -->
+{% include 'master/components/_master_nav.html' with pending_count=stats.pending_count %}
+{% endblock %}
+

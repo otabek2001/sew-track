@@ -16,10 +16,16 @@ from apps.dashboard import views
 
 
 def home_redirect(request):
-    """Redirect to dashboard if authenticated, else to login."""
-    if request.user.is_authenticated:
-        return redirect('dashboard:dashboard')
-    return redirect('login')
+    """Redirect to appropriate dashboard based on user role."""
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    # Check if master/admin
+    if request.user.is_staff or request.user.is_master_or_above:
+        return redirect('master:dashboard')
+    
+    # Regular worker
+    return redirect('dashboard:dashboard')
 
 
 urlpatterns = [
@@ -32,6 +38,9 @@ urlpatterns = [
     
     # Dashboard (Web UI)
     path('dashboard/', include('apps.dashboard.urls')),
+    
+    # Master Panel
+    path('master/', include('apps.master.urls')),
     
     # Additional pages (imported from dashboard views)
     path('statistics/', views.statistics, name='statistics'),

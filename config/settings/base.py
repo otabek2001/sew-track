@@ -51,6 +51,7 @@ LOCAL_APPS = [
     'core',
     'apps.accounts',
     'apps.dashboard',
+    'apps.master',
     'apps.employees',
     'apps.products',
     'apps.tasks',

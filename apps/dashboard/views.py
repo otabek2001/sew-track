@@ -174,26 +174,59 @@ def tv_dashboard(request):
     """
     Full-screen dashboard for TV displays.
     Auto-refreshes every 30 seconds via HTMX.
+    Shows company-wide statistics (all employees).
     """
     today = date.today()
     
-    # Mock data
+    # Get current time for display
+    from datetime import datetime
+    now = datetime.now()
+    current_time = now.strftime('%H:%M:%S')
+    current_date = now.strftime('%d.%m.%Y, %A')
+    
+    # Company-wide statistics for today
+    today_records = WorkRecord.objects.filter(work_date=today)
+    
     stats = {
-        'total_production': 1234,
-        'active_workers': 45,
-        'completed_tasks': 892,
-        'daily_plan_progress': 95,
+        'total_production': today_records.aggregate(
+            Sum('quantity')
+        )['quantity__sum'] or 0,
+        'active_workers': today_records.values('employee').distinct().count(),
+        'completed_tasks': today_records.filter(
+            status__in=[WorkRecord.Status.COMPLETED, WorkRecord.Status.APPROVED]
+        ).count(),
+        'total_payment': today_records.aggregate(
+            Sum('total_payment')
+        )['total_payment__sum'] or 0,
     }
     
-    # Chart data for production timeline
-    chart_data = {
-        'labels': ['8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'],
-        'data': [45, 78, 92, 120, 98, 145, 167, 189, 203],
-    }
+    # Chart data - hourly production for today
+    chart_labels = []
+    chart_data = []
+    
+    # Get hourly data (8:00 to current hour)
+    current_hour = now.hour
+    start_hour = 8  # Work starts at 8:00
+    
+    for hour in range(start_hour, min(current_hour + 1, 19)):  # Until 18:00
+        chart_labels.append(f'{hour:02d}:00')
+        
+        # Get production for this hour
+        hour_production = WorkRecord.objects.filter(
+            work_date=today,
+            created_at__hour=hour
+        ).aggregate(Sum('quantity'))['quantity__sum'] or 0
+        
+        chart_data.append(hour_production)
     
     return render(request, 'dashboard/tv.html', {
         'stats': stats,
-        'chart_data': chart_data,
+        'chart_data': {
+            'labels': json.dumps(chart_labels),
+            'data': json.dumps(chart_data),
+        },
+        'current_time': current_time,
+        'current_date': current_date,
     })
 
 
@@ -204,11 +237,20 @@ def tv_kpi_stats(request):
     """
     today = date.today()
     
+    # Company-wide statistics
+    today_records = WorkRecord.objects.filter(work_date=today)
+    
     stats = {
-        'total_production': 1234,
-        'active_workers': 45,
-        'completed_tasks': 892,
-        'daily_plan_progress': 95,
+        'total_production': today_records.aggregate(
+            Sum('quantity')
+        )['quantity__sum'] or 0,
+        'active_workers': today_records.values('employee').distinct().count(),
+        'completed_tasks': today_records.filter(
+            status__in=[WorkRecord.Status.COMPLETED, WorkRecord.Status.APPROVED]
+        ).count(),
+        'total_payment': today_records.aggregate(
+            Sum('total_payment')
+        )['total_payment__sum'] or 0,
     }
     
     return render(request, 'dashboard/_tv_kpi_cards.html', stats)
@@ -217,15 +259,19 @@ def tv_kpi_stats(request):
 def tv_top_performers(request):
     """
     HTMX partial for top performers list.
+    Shows top 10 employees by production today.
     """
-    # Mock data
-    top_performers = [
-        {'name': 'Fatima Karimova', 'tasks': 45, 'earnings': 350000},
-        {'name': 'Dilnoza Rashidova', 'tasks': 42, 'earnings': 335000},
-        {'name': 'Nodira Saidova', 'tasks': 38, 'earnings': 298000},
-        {'name': 'Malika Tursunova', 'tasks': 36, 'earnings': 285000},
-        {'name': 'Zilola Alimova', 'tasks': 34, 'earnings': 272000},
-    ]
+    today = date.today()
+    
+    # Get top performers for today
+    top_performers = WorkRecord.objects.filter(
+        work_date=today
+    ).values(
+        'employee__full_name'
+    ).annotate(
+        total_quantity=Sum('quantity'),
+        total_payment=Sum('total_payment')
+    ).order_by('-total_quantity')[:10]
     
     return render(request, 'dashboard/_tv_top_performers.html', {
         'performers': top_performers,

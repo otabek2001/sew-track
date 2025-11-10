@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}Yozuv tafsilotlari - Master Panel{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pb-24 md:pb-8 bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white border-b sticky top-0 z-30 shadow-sm">
+        <div class="px-4 py-4">
+            <div class="flex items-center gap-3">
+                <a href="{% url 'master:pending_approvals' %}" class="text-gray-600 touch-feedback">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </a>
+                <h1 class="text-xl font-bold text-gray-800">Yozuv tafsilotlari</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <div class="p-4 space-y-4">
+        <!-- Employee Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <p class="text-sm text-gray-500 mb-2">Ishchi</p>
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-lg">
+                    {{ record.employee.full_name|first }}
+                </div>
+                <div>
+                    <p class="font-bold text-gray-800">{{ record.employee.full_name }}</p>
+                    <p class="text-sm text-gray-600">{{ record.employee.get_position_display }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product & Task -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-4 border-b border-gray-100">
+                <p class="text-sm text-gray-500 mb-1">Mahsulot</p>
+                <p class="text-lg font-bold text-gray-800">{{ record.product.name }}</p>
+                <p class="text-sm text-gray-600">{{ record.product.article_code }}</p>
+            </div>
+            <div class="p-4">
+                <p class="text-sm text-gray-500 mb-1">Operatsiya</p>
+                <p class="text-lg font-bold text-gray-800">{{ record.task.name_uz }}</p>
+                <p class="text-sm text-gray-600">{{ record.task.code }}</p>
+            </div>
+        </div>
+
+        <!-- Quantity & Payment -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <p class="text-sm text-gray-500 mb-1">Miqdor</p>
+                    <p class="text-3xl font-bold text-gray-800">{{ record.quantity }}</p>
+                    <p class="text-xs text-gray-500">dona</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-gray-500 mb-1">Birlik narxi</p>
+                    <p class="text-xl font-bold text-gray-800">{{ record.price_per_unit|floatformat:0 }}</p>
+                    <p class="text-xs text-gray-500">so'm</p>
+                </div>
+            </div>
+            <div class="pt-4 border-t-2 border-gray-200">
+                <p class="text-sm text-gray-500 mb-1">Jami to'lov</p>
+                <p class="text-4xl font-bold text-purple-600">{{ record.total_payment|floatformat:0 }}</p>
+                <p class="text-xs text-gray-500">so'm</p>
+            </div>
+        </div>
+
+        <!-- Date Info -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-600">Ish sanasi</span>
+                    <span class="font-medium">{{ record.work_date|date:"d.m.Y" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-600">Yaratilgan</span>
+                    <span class="font-medium">{{ record.created_at|date:"d.m.Y H:i" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        {% if record.notes %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <p class="text-sm text-gray-500 mb-2">Izoh</p>
+            <p class="text-gray-800">{{ record.notes }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Actions (Only for pending) -->
+        {% if record.status == 'pending' %}
+        <div class="space-y-3 pt-4" x-data="{ showReject: false }">
+            <!-- Approve Button -->
+            <form method="post" action="{% url 'master:approve_record' record.id %}">
+                {% csrf_token %}
+                <button 
+                    type="submit"
+                    class="w-full h-14 bg-green-600 hover:bg-green-700 text-white text-lg font-bold rounded-lg transition touch-feedback flex items-center justify-center gap-2"
+                    onclick="return confirm('Ushbu yozuvni tasdiqlaysizmi?')"
+                >
+                    <i data-lucide="check-circle" class="w-6 h-6"></i>
+                    Tasdiqlash
+                </button>
+            </form>
+
+            <!-- Reject Button -->
+            <button 
+                @click="showReject = true"
+                class="w-full h-14 bg-red-50 hover:bg-red-100 text-red-600 text-lg font-medium rounded-lg transition touch-feedback flex items-center justify-center gap-2"
+            >
+                <i data-lucide="x-circle" class="w-6 h-6"></i>
+                Rad etish
+            </button>
+
+            <!-- Reject Form -->
+            <div 
+                x-show="showReject"
+                x-transition
+                class="bg-red-50 border-2 border-red-200 rounded-xl p-4"
+            >
+                <form method="post" action="{% url 'master:reject_record' record.id %}">
+                    {% csrf_token %}
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Rad etish sababi (ixtiyoriy)
+                    </label>
+                    <textarea 
+                        name="reason"
+                        rows="3"
+                        placeholder="Sabab..."
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-red-500 focus:ring-4 focus:ring-red-100 focus:outline-none mb-3"
+                    ></textarea>
+                    <div class="flex gap-3">
+                        <button 
+                            type="submit"
+                            class="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition touch-feedback"
+                        >
+                            Rad etish
+                        </button>
+                        <button 
+                            type="button"
+                            @click="showReject = false"
+                            class="flex-1 h-12 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition touch-feedback"
+                        >
+                            Bekor qilish
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <!-- Status Display -->
+        <div class="bg-gray-100 rounded-xl p-4 text-center">
+            <p class="text-gray-600">Bu yozuv allaqachon qayta ishlangan</p>
+            <p class="text-lg font-bold mt-2
+                {% if record.status == 'approved' %}text-green-600
+                {% elif record.status == 'rejected' %}text-red-600
+                {% else %}text-blue-600{% endif %}
+            ">
+                {{ record.get_status_display }}
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

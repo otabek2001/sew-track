@@ -1,0 +1,58 @@
+<!-- Master Bottom Navigation (Mobile) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40" style="padding-bottom: env(safe-area-inset-bottom);">
+    <div class="flex justify-around">
+        <a href="{% url 'master:dashboard' %}" class="nav-item touch-feedback {% if request.resolver_match.url_name == 'dashboard' and 'master' in request.path %}active{% endif %}">
+            <i data-lucide="layout-dashboard" class="w-6 h-6"></i>
+            <span class="text-xs mt-1">Panel</span>
+        </a>
+        
+        <a href="{% url 'master:pending_approvals' %}" class="nav-item touch-feedback {% if 'pending' in request.path %}active{% endif %}">
+            <i data-lucide="clock" class="w-6 h-6"></i>
+            <span class="text-xs mt-1">Kutilmoqda</span>
+            {% if pending_count %}
+            <span class="absolute top-1 right-4 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">{{ pending_count }}</span>
+            {% endif %}
+        </a>
+        
+        <a href="{% url 'dashboard:tv' %}" class="nav-item-fab touch-feedback">
+            <div class="bg-purple-600 rounded-full p-3 -mt-8 shadow-lg">
+                <i data-lucide="monitor" class="w-8 h-8 text-white"></i>
+            </div>
+            <span class="text-xs mt-1 text-purple-600 font-medium">TV</span>
+        </a>
+        
+        <a href="{% url 'tasks:work_records_list' %}" class="nav-item touch-feedback {% if 'work-records' in request.path %}active{% endif %}">
+            <i data-lucide="list" class="w-6 h-6"></i>
+            <span class="text-xs mt-1">Yozuvlar</span>
+        </a>
+        
+        <a href="{% url 'profile' %}" class="nav-item touch-feedback {% if 'profile' in request.path %}active{% endif %}">
+            <i data-lucide="user" class="w-6 h-6"></i>
+            <span class="text-xs mt-1">Profil</span>
+        </a>
+    </div>
+</nav>
+
+<style>
+    .nav-item {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        color: #6b7280;
+        text-decoration: none;
+    }
+    .nav-item.active {
+        color: #9333ea;
+        font-weight: 500;
+    }
+    .nav-item-fab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        text-decoration: none;
+    }
+</style>
+

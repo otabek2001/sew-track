@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Kutilayotgan yozuvlar - Master Panel{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pb-24 md:pb-8 bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white border-b sticky top-0 z-30 shadow-sm">
+        <div class="px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <a href="{% url 'master:dashboard' %}" class="text-gray-600 touch-feedback">
+                        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                    </a>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">Kutilayotgan yozuvlar</h1>
+                        <p class="text-sm text-gray-500">{{ stats.count|default:0 }} ta</p>
+                    </div>
+                </div>
+                <div x-data="{ selectAll: false }">
+                    <button 
+                        @click="selectAll = !selectAll; document.querySelectorAll('.record-checkbox').forEach(cb => cb.checked = selectAll)"
+                        class="text-purple-600 text-sm font-medium"
+                    >
+                        <span x-text="selectAll ? 'Bekor qilish' : 'Hammasini tanlash'">Hammasi</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Filters -->
+    <div class="bg-white border-b px-4 py-3 space-y-3">
+        <!-- Date Filter -->
+        <div class="flex gap-2 overflow-x-auto">
+            <a 
+                href="?date=all&employee={{ employee_filter }}&product={{ product_filter }}"
+                class="px-4 py-2 rounded-lg font-medium whitespace-nowrap transition touch-feedback {% if date_filter == 'all' %}bg-purple-600 text-white{% else %}bg-gray-100 text-gray-700{% endif %}"
+            >
+                Hammasi
+            </a>
+            <a 
+                href="?date=today&employee={{ employee_filter }}&product={{ product_filter }}"
+                class="px-4 py-2 rounded-lg font-medium whitespace-nowrap transition touch-feedback {% if date_filter == 'today' %}bg-purple-600 text-white{% else %}bg-gray-100 text-gray-700{% endif %}"
+            >
+                Bugun
+            </a>
+            <a 
+                href="?date=week&employee={{ employee_filter }}&product={{ product_filter }}"
+                class="px-4 py-2 rounded-lg font-medium whitespace-nowrap transition touch-feedback {% if date_filter == 'week' %}bg-purple-600 text-white{% else %}bg-gray-100 text-gray-700{% endif %}"
+            >
+                Bu hafta
+            </a>
+            <a 
+                href="?date=month&employee={{ employee_filter }}&product={{ product_filter }}"
+                class="px-4 py-2 rounded-lg font-medium whitespace-nowrap transition touch-feedback {% if date_filter == 'month' %}bg-purple-600 text-white{% else %}bg-gray-100 text-gray-700{% endif %}"
+            >
+                Bu oy
+            </a>
+        </div>
+
+        <!-- Employee & Product Filters -->
+        <div class="grid grid-cols-2 gap-2">
+            <select 
+                onchange="window.location.href='?date={{ date_filter }}&employee=' + this.value + '&product={{ product_filter }}'"
+                class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+            >
+                <option value="">Barcha ishchilar</option>
+                {% for emp in employees %}
+                <option value="{{ emp.id }}" {% if employee_filter == emp.id|stringformat:"s" %}selected{% endif %}>
+                    {{ emp.full_name }}
+                </option>
+                {% endfor %}
+            </select>
+            
+            <select 
+                onchange="window.location.href='?date={{ date_filter }}&employee={{ employee_filter }}&product=' + this.value"
+                class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+            >
+                <option value="">Barcha mahsulotlar</option>
+                {% for prod in products %}
+                <option value="{{ prod.id }}" {% if product_filter == prod.id|stringformat:"s" %}selected{% endif %}>
+                    {{ prod.article_code }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Statistics Summary -->
+    <div class="px-4 py-3 bg-gradient-to-r from-purple-50 to-purple-100 border-b">
+        <div class="grid grid-cols-3 gap-4 text-center">
+            <div>
+                <p class="text-sm text-gray-600 mb-1">Yozuvlar</p>
+                <p class="text-2xl font-bold text-gray-800">{{ stats.count|default:0 }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600 mb-1">Jami dona</p>
+                <p class="text-2xl font-bold text-gray-800">{{ stats.total_quantity|default:0 }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600 mb-1">Jami summa</p>
+                <p class="text-xl font-bold text-purple-600">{{ stats.total_payment|floatformat:0|default:0 }}</p>
+                <p class="text-xs text-gray-500">so'm</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Records List with Checkboxes -->
+    <div class="p-4 space-y-3">
+        {% if records %}
+        <form method="post" id="bulk-form" x-data="bulkActions()">
+            {% csrf_token %}
+            
+            <!-- Records -->
+            {% for record in records %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <div class="flex items-start gap-3">
+                    <!-- Checkbox -->
+                    <input 
+                        type="checkbox" 
+                        name="record_ids" 
+                        value="{{ record.id }}"
+                        @change="updateSelection()"
+                        class="record-checkbox w-6 h-6 mt-1 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    >
+                    
+                    <!-- Content -->
+                    <div class="flex-1">
+                        <!-- Employee -->
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-sm">
+                                {{ record.employee.full_name|first }}
+                            </div>
+                            <p class="font-bold text-gray-800">{{ record.employee.full_name }}</p>
+                        </div>
+                        
+                        <!-- Product & Task -->
+                        <p class="text-gray-700 mb-1">{{ record.product.name }}</p>
+                        <p class="text-sm text-gray-600">{{ record.task.name_uz }}</p>
+                        
+                        <!-- Quantity & Payment -->
+                        <div class="grid grid-cols-2 gap-4 mt-3 pt-3 border-t border-gray-100">
+                            <div>
+                                <p class="text-xs text-gray-500">Miqdor</p>
+                                <p class="font-bold text-gray-800">{{ record.quantity }} dona</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-gray-500">To'lov</p>
+                                <p class="font-bold text-purple-600">{{ record.total_payment|floatformat:0 }} so'm</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Date -->
+                        <div class="mt-2 text-xs text-gray-500 flex items-center gap-2">
+                            <i data-lucide="calendar" class="w-3 h-3"></i>
+                            {{ record.work_date|date:"d.m.Y" }}
+                            <span class="mx-1">•</span>
+                            {{ record.created_at|timesince }} oldin
+                        </div>
+
+                        <!-- Single Actions (Mobile) -->
+                        <div class="flex gap-2 mt-3">
+                            <form method="post" action="{% url 'master:approve_record' record.id %}" class="flex-1">
+                                {% csrf_token %}
+                                <button 
+                                    type="submit"
+                                    class="w-full h-10 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition touch-feedback flex items-center justify-center gap-1"
+                                    onclick="return confirm('Tasdiqlaysizmi?')"
+                                >
+                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                    Tasdiqlash
+                                </button>
+                            </form>
+                            
+                            <button 
+                                @click="rejectRecord('{{ record.id }}')"
+                                class="flex-1 h-10 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium rounded-lg transition touch-feedback flex items-center justify-center gap-1"
+                            >
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                                Rad etish
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Bulk Action Buttons (Sticky Bottom) -->
+            <div 
+                x-show="selectedCount > 0"
+                x-transition
+                class="fixed bottom-20 md:bottom-4 left-4 right-4 bg-white rounded-xl shadow-2xl border-2 border-purple-200 p-4 z-20"
+            >
+                <p class="text-sm text-gray-600 mb-3">
+                    <span class="font-bold text-purple-600" x-text="selectedCount">0</span> ta yozuv tanlandi
+                </p>
+                <div class="flex gap-3">
+                    <button 
+                        type="submit"
+                        formaction="{% url 'master:bulk_approve' %}"
+                        class="flex-1 h-12 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition touch-feedback flex items-center justify-center gap-2"
+                        onclick="return confirm('Tanlanganlarni tasdiqlaysizmi?')"
+                    >
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                        Tasdiqlash
+                    </button>
+                    
+                    <button 
+                        type="button"
+                        @click="showBulkReject = true"
+                        class="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition touch-feedback flex items-center justify-center gap-2"
+                    >
+                        <i data-lucide="x-circle" class="w-5 h-5"></i>
+                        Rad etish
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bulk Reject Modal -->
+            <div 
+                x-show="showBulkReject"
+                x-transition
+                class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+                @click.self="showBulkReject = false"
+            >
+                <div class="bg-white rounded-xl p-6 max-w-md w-full">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Rad etish sababi</h3>
+                    <textarea 
+                        name="reason"
+                        rows="3"
+                        placeholder="Sabab kiriting (ixtiyoriy)..."
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-red-500 focus:ring-4 focus:ring-red-100 focus:outline-none mb-4"
+                    ></textarea>
+                    <div class="flex gap-3">
+                        <button 
+                            type="submit"
+                            formaction="{% url 'master:bulk_reject' %}"
+                            class="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition"
+                        >
+                            Rad etish
+                        </button>
+                        <button 
+                            type="button"
+                            @click="showBulkReject = false"
+                            class="flex-1 h-12 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition"
+                        >
+                            Bekor qilish
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-12">
+            <div class="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                <i data-lucide="check-circle-2" class="w-10 h-10 text-green-600"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Barcha yozuvlar tasdiqlangan!</h3>
+            <p class="text-gray-600">Kutilayotgan yozuvlar yo'q</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Master Navigation -->
+{% include 'master/components/_master_nav.html' with pending_count=stats.count %}
+
+<script>
+function bulkActions() {
+    return {
+        selectedCount: 0,
+        showBulkReject: false,
+        
+        updateSelection() {
+            this.selectedCount = document.querySelectorAll('.record-checkbox:checked').length;
+        }
+    }
+}
+
+// Reinitialize icons
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+});
+</script>
+{% endblock %}
+
