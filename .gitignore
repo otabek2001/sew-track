@@ -1,0 +1,255 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+
+# VSCode
+.vscode/
+*.code-workspace
+.history/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+*.env
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+postgres_data/
+pgdata/
+
+# Redis
+redis_data/
+dump.rdb
+
+# Docker
+docker-compose.override.yml
+.docker/
+
+# Logs
+*.log
+logs/
+*.log.*
+celerybeat-schedule
+celerybeat.pid
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.hypothesis/
+.pytype/
+coverage.xml
+*.cover
+*.py,cover
+nosetests.xml
+test-results/
+.cache
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pyenv
+.python-version
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff (if needed in future):
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff (if needed in future):
+instance/
+.webassets-cache
+
+# Scrapy stuff (if needed in future):
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+target/
+
+# PyBuilder
+.pybuilder/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Backup files
+*.bak
+*.swp
+*.swo
+*~
+
+# Alembic
+# Keep migrations tracked, but ignore version files if needed
+# alembic/versions/*.py
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# IDE - all
+*.sublime-workspace
+*.sublime-project
+
+# Local configuration
+local_config.py
+config.local.py
+
+# Media files (uploads)
+media/
+uploads/
+static/uploads/
+
+# Compiled files
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Archives
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Node (if frontend is added later)
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+.pnpm-debug.log*
+
+# Security
+*.pem
+*.key
+*.cert
+*.crt
+secrets/
+private_key.pem
+public_key.pem
+
+# Monitoring
+prometheus_data/
+grafana_data/
+
