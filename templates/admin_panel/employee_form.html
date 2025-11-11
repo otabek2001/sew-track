@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{% if employee %}Tahrirlash{% else %}Yangi xodim{% endif %} - {{ tenant.name }}{% endblock %}
+{% block title %}{% if employee %}Tahrirlash{% else %}Yangi xodim{% endif %}{% if tenant %} - {{ tenant.name }}{% endif %}{% endblock %}
 
 {% block content %}
 <!-- Admin Navigation -->
@@ -416,17 +416,14 @@ function passwordEditValidator() {
 document.addEventListener('DOMContentLoaded', function() {
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
-        
-        // Re-init icons when Alpine updates DOM
-        const observer = new MutationObserver(() => {
-            lucide.createIcons();
-        });
-        
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
     }
+    
+    // Re-init icons when Alpine is ready (one-time)
+    document.addEventListener('alpine:initialized', () => {
+        if (typeof lucide !== 'undefined') {
+            setTimeout(() => lucide.createIcons(), 100);
+        }
+    });
 });
 </script>
 {% endblock %}

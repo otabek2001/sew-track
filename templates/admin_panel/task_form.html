@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{% if task %}Tahrirlash{% else %}Yangi operatsiya{% endif %} - {{tenant.name}}{% endblock %}
+{% block title %}{% if task %}Tahrirlash{% else %}Yangi operatsiya{% endif %}{% if tenant %} - {{tenant.name}}{% endif %}{% endblock %}
 {% block content %}
 <!-- Admin Navigation -->
 {% include 'admin_panel/components/_admin_nav.html' %}

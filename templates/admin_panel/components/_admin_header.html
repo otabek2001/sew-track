@@ -1,0 +1,55 @@
+<!-- Admin Panel Header -->
+{% load static %}
+
+<header class="bg-white border-b sticky top-0 z-40 shadow-sm">
+    <div class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+            <!-- Left Side: Title -->
+            <div class="flex items-center gap-4">
+                {% if page_title %}
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold text-gray-800">{{ page_title }}</h1>
+                    {% if page_subtitle %}
+                    <p class="text-sm text-gray-500">{{ page_subtitle }}</p>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="hidden md:block">
+                    <h1 class="text-2xl font-bold text-gray-800">Boshqaruv Paneli</h1>
+                    {% if tenant %}
+                    <p class="text-sm text-gray-500">{{ tenant.name }}</p>
+                    {% endif %}
+                </div>
+                <div class="md:hidden">
+                    <h1 class="text-xl font-bold text-gray-800">Admin</h1>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Right Side Actions -->
+            <div class="flex items-center gap-2">
+                <!-- Profile Button (Mobile only) -->
+                <a 
+                    href="{% url 'profile' %}"
+                    class="md:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 transition text-gray-600 touch-feedback"
+                    title="Profil"
+                >
+                    <i data-lucide="user-circle" class="w-6 h-6"></i>
+                </a>
+                
+                <!-- Tenant Switcher -->
+                {% include 'admin_panel/components/_tenant_switcher.html' %}
+            </div>
+        </div>
+    </div>
+</header>
+
+<script>
+// Reinit lucide icons after header loads
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+});
+</script>
+

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Xodimlar - {{ tenant.name }}{% endblock %}
+{% block title %}Xodimlar{% if tenant %} - {{ tenant.name }}{% endif %}{% endblock %}
 
 {% block content %}
 <!-- Admin Navigation -->
@@ -22,13 +22,24 @@
                     </div>
                 </div>
                 
-                <a 
-                    href="{% url 'admin_panel:employee_create' %}"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition"
-                >
-                    <i data-lucide="user-plus" class="w-5 h-5"></i>
-                    <span class="hidden md:inline">Yangi xodim</span>
-                </a>
+                <div class="flex items-center gap-2">
+                    <!-- Profile Button (Mobile only) -->
+                    <a 
+                        href="{% url 'profile' %}"
+                        class="md:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 transition text-gray-600"
+                        title="Profil"
+                    >
+                        <i data-lucide="user-circle" class="w-5 h-5"></i>
+                    </a>
+                    
+                    <a 
+                        href="{% url 'admin_panel:employee_create' %}"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition"
+                    >
+                        <i data-lucide="user-plus" class="w-5 h-5"></i>
+                        <span class="hidden md:inline">Yangi xodim</span>
+                    </a>
+                </div>
             </div>
         </div>
     </header>

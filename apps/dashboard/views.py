@@ -183,19 +183,9 @@ def statistics(request):
 @login_required
 def profile(request):
     """
-    User profile page with settings for workers.
-    Admin users are redirected to admin panel.
+    User profile page with settings.
+    Available for all user roles.
     """
-    user = request.user
-    
-    # Redirect admin users to admin panel
-    if user.role in [User.Role.SUPER_ADMIN, User.Role.TENANT_ADMIN]:
-        return redirect('admin_panel:dashboard')
-    
-    # Redirect masters to master panel
-    if user.role == User.Role.MASTER:
-        return redirect('master:dashboard')
-    
     return render(request, 'profile.html', {
         'user': request.user,
     })

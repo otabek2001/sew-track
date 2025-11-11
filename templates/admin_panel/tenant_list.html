@@ -17,13 +17,18 @@
                     <p class="text-sm text-gray-500">{{ tenants.count }} ta tsex</p>
                 </div>
                 
-                <a 
-                    href="{% url 'admin_panel:tenant_create' %}"
-                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition"
-                >
-                    <i data-lucide="plus" class="w-5 h-5"></i>
-                    <span>Yangi tsex</span>
-                </a>
+                <div class="flex items-center gap-2">
+                    <a href="{% url 'profile' %}" class="md:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 transition text-gray-600" title="Profil">
+                        <i data-lucide="user-circle" class="w-5 h-5"></i>
+                    </a>
+                    <a 
+                        href="{% url 'admin_panel:tenant_create' %}"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg font-medium flex items-center gap-2 transition"
+                    >
+                        <i data-lucide="plus" class="w-5 h-5"></i>
+                        <span class="hidden md:inline">Yangi tsex</span>
+                    </a>
+                </div>
             </div>
         </div>
     </header>

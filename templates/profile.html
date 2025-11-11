@@ -8,9 +8,19 @@
     <header class="bg-white border-b sticky top-0 z-30 shadow-sm">
         <div class="px-4 py-4">
             <div class="flex items-center gap-3">
-                <a href="{% url 'dashboard:dashboard' %}" class="text-gray-600 md:hidden touch-feedback">
-                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
-                </a>
+                {% if user.role == 'super_admin' or user.role == 'tenant_admin' %}
+                    <a href="{% url 'admin_panel:dashboard' %}" class="text-gray-600 md:hidden touch-feedback">
+                        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                    </a>
+                {% elif user.role == 'master' %}
+                    <a href="{% url 'master:dashboard' %}" class="text-gray-600 md:hidden touch-feedback">
+                        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                    </a>
+                {% else %}
+                    <a href="{% url 'dashboard:dashboard' %}" class="text-gray-600 md:hidden touch-feedback">
+                        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                    </a>
+                {% endif %}
                 <h1 class="text-xl font-bold text-gray-800">Profil</h1>
             </div>
         </div>
@@ -158,7 +168,7 @@
         <!-- App Info -->
         <div class="text-center text-sm text-gray-500 py-4">
             <p>SEW-TRACK v1.0.0</p>
-            <p class="mt-1">© 2024 Barcha huquqlar himoyalangan</p>
+            <p class="mt-1">© 2025 Barcha huquqlar himoyalangan</p>
         </div>
     </div>
 </div>

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Mahsulotlar - {{ tenant.name }}{% endblock %}
+{% block title %}Mahsulotlar{% if tenant %} - {{ tenant.name }}{% endif %}{% endblock %}
 
 {% block content %}
 <!-- Admin Navigation -->
@@ -20,10 +20,15 @@
                         <p class="text-sm text-gray-500">{{ stats.total }} ta</p>
                     </div>
                 </div>
-                <a href="{% url 'admin_panel:product_create' %}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2">
-                    <i data-lucide="plus" class="w-5 h-5"></i>
-                    <span class="hidden md:inline">Yangi</span>
-                </a>
+                <div class="flex items-center gap-2">
+                    <a href="{% url 'profile' %}" class="md:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 transition text-gray-600" title="Profil">
+                        <i data-lucide="user-circle" class="w-5 h-5"></i>
+                    </a>
+                    <a href="{% url 'admin_panel:product_create' %}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2">
+                        <i data-lucide="plus" class="w-5 h-5"></i>
+                        <span class="hidden md:inline">Yangi</span>
+                    </a>
+                </div>
             </div>
         </div>
     </header>
