@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Kutilayotgan yozuvlar - Master Panel{% endblock %}
+{% block title %}Kutilayotgan ishlar - Master Panel{% endblock %}
 
 {% block content %}
 <div class="min-h-screen pb-24 md:pb-8 bg-gray-50">
@@ -12,7 +12,7 @@
                     <i data-lucide="arrow-left" class="w-6 h-6"></i>
                 </a>
                 <div>
-                    <h1 class="text-xl font-bold text-gray-800">Kutilayotgan yozuvlar</h1>
+                    <h1 class="text-xl font-bold text-gray-800">Kutilayotgan ishlar</h1>
                     <p class="text-sm text-gray-500">{{ stats.count|default:0 }} ta</p>
                 </div>
             </div>
@@ -49,7 +49,7 @@
     <div class="px-4 py-3 bg-purple-50 border-b">
         <div class="grid grid-cols-3 gap-4 text-center">
             <div>
-                <p class="text-sm text-gray-600">Yozuvlar</p>
+                <p class="text-sm text-gray-600">Ishlar</p>
                 <p class="text-2xl font-bold">{{ stats.count|default:0 }}</p>
             </div>
             <div>
@@ -131,7 +131,7 @@
                 <i data-lucide="check-circle-2" class="w-10 h-10 text-green-600"></i>
             </div>
             <h3 class="text-lg font-bold text-gray-800 mb-2">Hammasi tasdiqlangan!</h3>
-            <p class="text-gray-600">Kutilayotgan yozuvlar yo'q</p>
+            <p class="text-gray-600">Kutilayotgan ishlar yo'q</p>
         </div>
         {% endif %}
     </div>

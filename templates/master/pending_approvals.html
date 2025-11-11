@@ -14,7 +14,7 @@
                         <i data-lucide="arrow-left" class="w-6 h-6"></i>
                     </a>
                     <div>
-                        <h1 class="text-xl font-bold text-gray-800">Kutilayotgan yozuvlar</h1>
+                        <h1 class="text-xl font-bold text-gray-800">Kutilayotgan ishlar</h1>
                         <p class="text-sm text-gray-500">{{ stats.count|default:0 }} ta</p>
                     </div>
                 </div>
@@ -91,7 +91,7 @@
     <div class="px-4 py-3 bg-gradient-to-r from-purple-50 to-purple-100 border-b">
         <div class="grid grid-cols-3 gap-4 text-center">
             <div>
-                <p class="text-sm text-gray-600 mb-1">Yozuvlar</p>
+                <p class="text-sm text-gray-600 mb-1">Ishlar</p>
                 <p class="text-2xl font-bold text-gray-800">{{ stats.count|default:0 }}</p>
             </div>
             <div>
@@ -227,7 +227,7 @@
                 class="fixed bottom-20 md:bottom-4 left-4 right-4 bg-white rounded-xl shadow-2xl border-2 border-purple-200 p-4 z-20"
             >
                 <p class="text-sm text-gray-600 mb-3">
-                    <span class="font-bold text-purple-600" id="selected-count">0</span> ta yozuv tanlandi
+                    <span class="font-bold text-purple-600" id="selected-count">0</span> ta ish tanlandi
                 </p>
                 <div class="flex gap-3">
                     <button 
@@ -292,8 +292,8 @@
             <div class="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
                 <i data-lucide="check-circle-2" class="w-10 h-10 text-green-600"></i>
             </div>
-            <h3 class="text-lg font-bold text-gray-800 mb-2">Barcha yozuvlar tasdiqlangan!</h3>
-            <p class="text-gray-600">Kutilayotgan yozuvlar yo'q</p>
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Barcha ishlar tasdiqlangan!</h3>
+            <p class="text-gray-600">Kutilayotgan ishlar yo'q</p>
         </div>
         {% endif %}
     </div>
@@ -321,7 +321,7 @@ function updateSelectionCount() {
         bulkBar.style.display = count > 0 ? 'block' : 'none';
     }
     
-    console.log('✅ Selected:', count);
+    // console.log('✅ Selected:', count);
 }
 
 // Toggle select all checkboxes
@@ -358,7 +358,7 @@ function handleBulkApprove(event) {
     // Validation - agar hech narsa tanlanmasa
     if (count === 0) {
         console.log('❌ No records selected');
-        alert('⚠️ Iltimos, tasdiqlash uchun yozuvlarni tanlang!');
+        alert('⚠️ Iltimos, tasdiqlash uchun ishlarni tanlang!');
         return false;
     }
     
@@ -367,7 +367,7 @@ function handleBulkApprove(event) {
     console.log('✅ Selected IDs:', selectedIds);
     
     // Confirmation with count
-    const message = `✅ ${count} ta yozuvni tasdiqlaysizmi?\n\nBu amal qaytarib bo'lmaydi.`;
+    const message = `✅ ${count} ta ishni tasdiqlaysizmi?\n\nBu amal qaytarib bo'lmaydi.`;
     const confirmed = confirm(message);
     
     console.log('💬 User confirmed:', confirmed);
@@ -419,7 +419,7 @@ function handleBulkReject(event) {
     // Validation - agar hech narsa tanlanmasa
     if (count === 0) {
         console.log('❌ No records selected');
-        alert('⚠️ Iltimos, rad etish uchun yozuvlarni tanlang!');
+        alert('⚠️ Iltimos, rad etish uchun ishlarni tanlang!');
         return false;
     }
     
@@ -464,7 +464,7 @@ function confirmBulkReject(event) {
     const selectedIds = Array.from(checkboxes).map(cb => cb.value);
     console.log('✅ Selected IDs:', selectedIds);
     
-    const message = `❌ ${count} ta yozuvni rad etasizmi?\n\nBu amal qaytarib bo'lmaydi.`;
+    const message = `❌ ${count} ta ishni rad etasizmi?\n\nBu amal qaytarib bo'lmaydi.`;
     const confirmed = confirm(message);
     
     console.log('💬 User confirmed:', confirmed);
@@ -495,7 +495,7 @@ function confirmBulkReject(event) {
 function handleSingleApprove(recordId) {
     console.log('🔍 Single Approve clicked for:', recordId);
     
-    if (!confirm('✅ Bu yozuvni tasdiqlaysizmi?')) {
+    if (!confirm('✅ Bu ishni tasdiqlaysizmi?')) {
         console.log('❌ User cancelled single approve');
         return;
     }
@@ -528,7 +528,7 @@ function handleSingleReject(recordId) {
     const reasonTextarea = document.getElementById(`single-reject-reason-${recordId}`);
     const reason = reasonTextarea ? reasonTextarea.value : '';
     
-    if (!confirm('❌ Bu yozuvni rad etasizmi?')) {
+    if (!confirm('❌ Bu ishni rad etasizmi?')) {
         console.log('❌ User cancelled single reject');
         return;
     }

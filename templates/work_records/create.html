@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Yangi yozuv - SEW-TRACK{% endblock %}
+{% block title %}Yangi ish qo'shish - SEW-TRACK{% endblock %}
 
 {% block content %}
 <div class="min-h-screen pb-24 md:pb-8 bg-gray-50">
@@ -11,7 +11,7 @@
                 <a href="{% url 'tasks:work_records_list' %}" class="text-gray-600 touch-feedback">
                     <i data-lucide="arrow-left" class="w-6 h-6"></i>
                 </a>
-                <h1 class="text-xl font-bold text-gray-800">Yangi yozuv</h1>
+                <h1 class="text-xl font-bold text-gray-800">Yangi ish qo'shish</h1>
             </div>
         </div>
     </header>
@@ -61,7 +61,7 @@
             <!-- Task Select (loaded dynamically) -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Operatsiya <span class="text-red-500">*</span>
+                    Vazifa <span class="text-red-500">*</span>
                 </label>
                 <select 
                     name="task"
@@ -230,7 +230,7 @@ function workRecordForm() {
                 
                 // Update select element with new options
                 const select = document.getElementById('task-select');
-                select.innerHTML = '<option value="">Operatsiyani tanlang</option>';
+                select.innerHTML = '<option value="">Vazifani tanlang</option>';
                 this.availableTasks.forEach(task => {
                     const option = document.createElement('option');
                     option.value = task.id;

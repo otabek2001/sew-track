@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Yozuv tafsilotlari - Master Panel{% endblock %}
+{% block title %}Ish tafsilotlari - Master Panel{% endblock %}
 
 {% block content %}
 <div class="min-h-screen pb-24 md:pb-8 bg-gray-50">
@@ -11,7 +11,7 @@
                 <a href="{% url 'master:pending_approvals' %}" class="text-gray-600 touch-feedback">
                     <i data-lucide="arrow-left" class="w-6 h-6"></i>
                 </a>
-                <h1 class="text-xl font-bold text-gray-800">Yozuv tafsilotlari</h1>
+                <h1 class="text-xl font-bold text-gray-800">Ish tafsilotlari</h1>
             </div>
         </div>
     </header>
@@ -152,7 +152,7 @@
         {% else %}
         <!-- Status Display -->
         <div class="bg-gray-100 rounded-xl p-4 text-center">
-            <p class="text-gray-600">Bu yozuv allaqachon qayta ishlangan</p>
+            <p class="text-gray-600">Bu ish allaqachon qayta ishlangan</p>
             <p class="text-lg font-bold mt-2
                 {% if record.status == 'approved' %}text-green-600
                 {% elif record.status == 'rejected' %}text-red-600

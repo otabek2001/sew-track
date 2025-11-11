@@ -35,7 +35,8 @@
 
     <div class="container mx-auto px-4 py-6">
         {% if tasks %}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <!-- Desktop Table View -->
+        <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <table class="w-full">
                 <thead class="bg-gray-50 border-b">
                     <tr>
@@ -70,6 +71,40 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+
+        <!-- Mobile Scrollable Table View -->
+        <div class="md:hidden bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[640px]">
+                    <thead class="bg-gray-50 border-b">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">№</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Kod</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Nomi</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Kategoriya</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase whitespace-nowrap sticky right-0 bg-gray-50">
+                                <i data-lucide="settings" class="w-4 h-4 inline-block"></i>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        {% for task in tasks %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-4 text-sm text-gray-600 whitespace-nowrap">{{ task.sequence_order }}</td>
+                            <td class="px-4 py-4 text-sm font-mono text-gray-800 whitespace-nowrap">{{ task.code }}</td>
+                            <td class="px-4 py-4 font-medium text-gray-800">{{ task.name_uz }}</td>
+                            <td class="px-4 py-4 text-sm text-gray-600 whitespace-nowrap">{{ task.get_category_display }}</td>
+                            <td class="px-4 py-4 text-right sticky right-0 bg-white">
+                                <a href="{% url 'admin_panel:task_edit' task.id %}" class="inline-flex items-center justify-center w-9 h-9 text-purple-600 hover:bg-purple-50 rounded-lg transition">
+                                    <i data-lucide="edit" class="w-5 h-5"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
         {% else %}
         <div class="bg-white rounded-xl shadow-sm border p-12 text-center">

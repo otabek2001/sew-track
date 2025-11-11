@@ -117,7 +117,7 @@
             
             <a href="{% url 'tasks:work_records_list' %}" class="nav-item touch-feedback {% if 'work-records' in request.path %}active{% endif %}">
                 <i data-lucide="clipboard-list" class="w-6 h-6"></i>
-                <span class="text-xs mt-1">Yozuvlar</span>
+                <span class="text-xs mt-1">Ishlar</span>
             </a>
             
             <a href="{% url 'tasks:work_record_create' %}" class="nav-item-fab touch-feedback">
@@ -175,17 +175,17 @@
             // Initialize Lucide icons
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
-                console.log('✅ Lucide icons initialized');
+                // console.log('✅ Lucide icons initialized');
             } else {
                 console.error('❌ Lucide not loaded');
             }
             
             // Check if all libraries loaded
-            console.log('Libraries status:');
-            console.log('- Tailwind:', typeof tailwind !== 'undefined' ? '✅' : '❌');
-            console.log('- Alpine:', typeof Alpine !== 'undefined' ? '✅' : '❌');
-            console.log('- HTMX:', typeof htmx !== 'undefined' ? '✅' : '❌');
-            console.log('- Lucide:', typeof lucide !== 'undefined' ? '✅' : '❌');
+            // console.log('Libraries status:');
+            // console.log('- Tailwind:', typeof tailwind !== 'undefined' ? '✅' : '❌');
+            // console.log('- Alpine:', typeof Alpine !== 'undefined' ? '✅' : '❌');
+            // console.log('- HTMX:', typeof htmx !== 'undefined' ? '✅' : '❌');
+            // console.log('- Lucide:', typeof lucide !== 'undefined' ? '✅' : '❌');
         });
         
         // Toast notification function

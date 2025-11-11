@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Mening yozuvlarim - SEW-TRACK{% endblock %}
+{% block title %}Mening ishlarim - SEW-TRACK{% endblock %}
 
 {% block content %}
 <div class="min-h-screen pb-24 md:pb-8 bg-gray-50">
@@ -12,7 +12,7 @@
                     <a href="{% url 'dashboard:dashboard' %}" class="text-gray-600 md:hidden touch-feedback">
                         <i data-lucide="arrow-left" class="w-6 h-6"></i>
                     </a>
-                    <h1 class="text-xl font-bold text-gray-800">Mening yozuvlarim</h1>
+                    <h1 class="text-xl font-bold text-gray-800">Mening ishlarim</h1>
                 </div>
                 <a 
                     href="{% url 'tasks:work_record_create' %}" 
@@ -185,14 +185,14 @@
                 <div class="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
                     <i data-lucide="inbox" class="w-10 h-10 text-gray-400"></i>
                 </div>
-                <h3 class="text-lg font-bold text-gray-800 mb-2">Yozuvlar topilmadi</h3>
-                <p class="text-gray-600 mb-6">Hali birorta ish yozuvingiz yo'q</p>
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Ishlar topilmadi</h3>
+                <p class="text-gray-600 mb-6">Hali birorta ish qo'shmagansiz</p>
                 <a 
                     href="{% url 'tasks:work_record_create' %}"
                     class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium touch-feedback"
                 >
                     <i data-lucide="plus" class="w-5 h-5"></i>
-                    <span>Birinchi yozuvni yarating</span>
+                    <span>Birinchi ishni qo'shish</span>
                 </a>
             </div>
         {% endif %}
