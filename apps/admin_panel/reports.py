@@ -88,7 +88,7 @@ def export_daily_report_excel(tenant, report_date):
             record.product.name if record.product else '-',
             record.task.name_uz if record.task else '-',
             record.quantity,
-            record.unit_price,
+            record.price_per_unit,
             record.total_payment,
             status_map.get(record.status, record.status)
         ]
@@ -217,7 +217,7 @@ def export_employee_report_excel(employee, start_date, end_date):
             record.product.name if record.product else '-',
             record.task.name_uz if record.task else '-',
             record.quantity,
-            record.unit_price,
+            record.price_per_unit,
             record.total_payment,
             status_map.get(record.status, record.status)
         ]
