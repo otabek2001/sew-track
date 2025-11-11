@@ -764,6 +764,7 @@ def reports_dashboard(request):
     return render(request, 'admin_panel/reports.html', {
         'tenant': tenant,
         'stats': stats,
+        'today': today,
     })
 
 

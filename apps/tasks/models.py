@@ -213,7 +213,7 @@ class WorkRecord(TimeStampedModel):
     def reject(self):
         """Reject this work record."""
         self.status = self.Status.REJECTED
-        self.save(update_fields=['status', 'updated_at'])
+        self.save(update_fields=['status', 'notes', 'updated_at'])
     
     def complete(self):
         """Mark as completed."""

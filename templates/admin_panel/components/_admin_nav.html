@@ -1,7 +1,7 @@
 <!-- Admin Panel Navigation (Owner/Tenant Admin) -->
 {% load static %}
 
-<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-2xl z-40 md:hidden">
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-2xl z-40 md:hidden" x-data="{ moreMenuOpen: false }">
     <div class="grid grid-cols-5 h-16">
         <!-- Dashboard -->
         <a 
@@ -39,23 +39,83 @@
             <span class="text-xs font-medium">Operatsiyalar</span>
         </a>
         
-        <!-- Reports -->
-        <a 
-            href="{% url 'admin_panel:reports' %}"
-            class="flex flex-col items-center justify-center gap-1 transition {% if 'reports' in request.path %}text-indigo-600{% else %}text-gray-600 hover:text-indigo-600{% endif %}"
+        <!-- More Menu Button -->
+        <button 
+            @click="moreMenuOpen = !moreMenuOpen"
+            class="flex flex-col items-center justify-center gap-1 transition relative {% if 'reports' in request.path or 'tenant' in request.path or 'profile' in request.path %}text-indigo-600{% else %}text-gray-600 hover:text-indigo-600{% endif %}"
+            :class="{ 'text-indigo-600': moreMenuOpen }"
         >
-            <i data-lucide="file-text" class="w-5 h-5"></i>
-            <span class="text-xs font-medium">Hisobotlar</span>
-        </a>
-        
-        <!-- Tenants -->
-        <a 
-            href="{% url 'admin_panel:tenant_list' %}"
-            class="flex flex-col items-center justify-center gap-1 transition {% if 'tenant' in request.path %}text-indigo-600{% else %}text-gray-600 hover:text-indigo-600{% endif %}"
-        >
-            <i data-lucide="building-2" class="w-5 h-5"></i>
-            <span class="text-xs font-medium">Tsexlar</span>
-        </a>
+            <i data-lucide="more-horizontal" class="w-5 h-5"></i>
+            <span class="text-xs font-medium">Yana</span>
+        </button>
+    </div>
+
+    <!-- More Menu Dropdown -->
+    <div 
+        x-show="moreMenuOpen" 
+        @click.away="moreMenuOpen = false"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 translate-y-4"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 translate-y-4"
+        x-cloak
+        class="absolute bottom-16 right-0 left-0 bg-white border-t border-gray-200 shadow-2xl"
+    >
+        <div class="max-w-md mx-auto py-2 px-4 space-y-1">
+            <!-- Reports -->
+            <a 
+                href="{% url 'admin_panel:reports' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg transition {% if 'reports' in request.path %}bg-indigo-100 text-indigo-600{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
+                @click="moreMenuOpen = false"
+            >
+                <i data-lucide="file-text" class="w-5 h-5"></i>
+                <span class="font-medium">Hisobotlar</span>
+            </a>
+
+            <!-- Tenants -->
+            <a 
+                href="{% url 'admin_panel:tenant_list' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg transition {% if 'tenant' in request.path %}bg-indigo-100 text-indigo-600{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
+                @click="moreMenuOpen = false"
+            >
+                <i data-lucide="building-2" class="w-5 h-5"></i>
+                <span class="font-medium">Tsexlar</span>
+            </a>
+
+            <!-- Approvals (Master) -->
+            <a 
+                href="{% url 'master:pending_approvals' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg transition text-gray-700 hover:bg-gray-100"
+                @click="moreMenuOpen = false"
+            >
+                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                <span class="font-medium">Tasdiqlash</span>
+            </a>
+
+            <div class="border-t border-gray-200 my-2"></div>
+
+            <!-- Profile -->
+            <a 
+                href="{% url 'profile' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg transition {% if 'profile' in request.path %}bg-indigo-100 text-indigo-600{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
+                @click="moreMenuOpen = false"
+            >
+                <i data-lucide="user-circle" class="w-5 h-5"></i>
+                <span class="font-medium">Profil</span>
+            </a>
+
+            <!-- Logout -->
+            <a 
+                href="{% url 'logout' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg transition text-red-600 hover:bg-red-50"
+                @click="moreMenuOpen = false"
+            >
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+                <span class="font-medium">Chiqish</span>
+            </a>
+        </div>
     </div>
 </nav>
 
