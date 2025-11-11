@@ -32,19 +32,25 @@ def master_dashboard(request):
     """
     today = date.today()
     
-    # Statistics
-    pending_count = WorkRecord.objects.filter(status=WorkRecord.Status.PENDING).count()
+    # Statistics - filter by current tenant
+    pending_count = WorkRecord.objects.filter(
+        tenant=request.tenant,
+        status=WorkRecord.Status.PENDING
+    ).count()
     today_approved = WorkRecord.objects.filter(
+        tenant=request.tenant,
         work_date=today,
         status=WorkRecord.Status.APPROVED
     ).count()
     today_rejected = WorkRecord.objects.filter(
+        tenant=request.tenant,
         work_date=today,
         status=WorkRecord.Status.REJECTED
     ).count()
     
     # Recent activity (last 10 approved/rejected)
     recent_activity = WorkRecord.objects.filter(
+        tenant=request.tenant,
         status__in=[WorkRecord.Status.APPROVED, WorkRecord.Status.REJECTED]
     ).select_related(
         'employee', 'product', 'task'
@@ -74,8 +80,9 @@ def pending_approvals(request):
     employee_filter = request.GET.get('employee', '')
     product_filter = request.GET.get('product', '')
     
-    # Base query - only pending
+    # Base query - only pending for current tenant
     records = WorkRecord.objects.filter(
+        tenant=request.tenant,
         status=WorkRecord.Status.PENDING
     ).select_related(
         'employee', 'product', 'task', 'product_task'
@@ -112,9 +119,15 @@ def pending_approvals(request):
     # Order by date (newest first)
     records = records.order_by('-work_date', '-created_at')
     
-    # Get filter options
-    employees = Employee.objects.filter(is_active=True).order_by('full_name')
-    products = Product.objects.filter(is_active=True).order_by('article_code')
+    # Get filter options - only for current tenant
+    employees = Employee.objects.filter(
+        tenant=request.tenant,
+        is_active=True
+    ).order_by('full_name')
+    products = Product.objects.filter(
+        tenant=request.tenant,
+        is_active=True
+    ).order_by('article_code')
     
     return render(request, 'master/pending_approvals.html', {
         'records': records,
@@ -134,15 +147,27 @@ def approve_record(request, record_id):
     Approve single work record.
     """
     if request.method == 'POST':
-        record = get_object_or_404(WorkRecord, id=record_id, status=WorkRecord.Status.PENDING)
+        print(f"🔍 [SINGLE APPROVE] Received request from user: {request.user}")
+        print(f"📊 [SINGLE APPROVE] Record ID: {record_id}")
+        
+        record = get_object_or_404(
+            WorkRecord,
+            id=record_id,
+            tenant=request.tenant,
+            status=WorkRecord.Status.PENDING
+        )
         
         # Get approver (current user's employee)
         approver = None
         if hasattr(request.user, 'employee'):
             approver = request.user.employee
+            print(f"✅ [SINGLE APPROVE] Approver: {approver.full_name}")
+        else:
+            print("⚠️ [SINGLE APPROVE] User has no employee profile!")
         
         # Approve record
         record.approve(approver)
+        print(f"✅ [SINGLE APPROVE] Successfully approved record {record_id}")
         
         # HTMX response
         if request.headers.get('HX-Request'):
@@ -164,15 +189,26 @@ def reject_record(request, record_id):
     Reject single work record.
     """
     if request.method == 'POST':
-        record = get_object_or_404(WorkRecord, id=record_id, status=WorkRecord.Status.PENDING)
+        print(f"🔍 [SINGLE REJECT] Received request from user: {request.user}")
+        print(f"📊 [SINGLE REJECT] Record ID: {record_id}")
+        
+        record = get_object_or_404(
+            WorkRecord,
+            id=record_id,
+            tenant=request.tenant,
+            status=WorkRecord.Status.PENDING
+        )
         
         # Get reject reason (optional)
         reason = request.POST.get('reason', '')
+        print(f"📝 [SINGLE REJECT] Reason: {reason if reason else '(none)'}")
+        
         if reason:
             record.notes = f"Rad etildi: {reason}"
         
         # Reject record
         record.reject()
+        print(f"✅ [SINGLE REJECT] Successfully rejected record {record_id}")
         
         # HTMX response
         if request.headers.get('HX-Request'):
@@ -196,7 +232,12 @@ def bulk_approve(request):
     if request.method == 'POST':
         record_ids = request.POST.getlist('record_ids')
         
+        print(f"🔍 [BULK APPROVE] Received request from user: {request.user}")
+        print(f"📊 [BULK APPROVE] Record IDs received: {record_ids}")
+        print(f"📊 [BULK APPROVE] Total count: {len(record_ids)}")
+        
         if not record_ids:
+            print("❌ [BULK APPROVE] No records selected!")
             messages.warning(request, 'Hech qanday yozuv tanlanmadi!')
             return redirect('master:pending_approvals')
         
@@ -204,17 +245,27 @@ def bulk_approve(request):
         approver = None
         if hasattr(request.user, 'employee'):
             approver = request.user.employee
+            print(f"✅ [BULK APPROVE] Approver: {approver.full_name}")
+        else:
+            print("⚠️ [BULK APPROVE] User has no employee profile!")
         
-        # Approve all selected records
+        # Approve all selected records (only from current tenant)
         count = 0
         for record_id in record_ids:
             try:
-                record = WorkRecord.objects.get(id=record_id, status=WorkRecord.Status.PENDING)
+                record = WorkRecord.objects.get(
+                    id=record_id,
+                    tenant=request.tenant,
+                    status=WorkRecord.Status.PENDING
+                )
                 record.approve(approver)
                 count += 1
+                print(f"✅ [BULK APPROVE] Approved record {record_id} (#{count})")
             except WorkRecord.DoesNotExist:
+                print(f"❌ [BULK APPROVE] Record {record_id} not found or not pending!")
                 continue
         
+        print(f"🎉 [BULK APPROVE] Successfully approved {count} records!")
         messages.success(request, f'{count} ta yozuv tasdiqlandi!')
         return redirect('master:pending_approvals')
     
@@ -231,22 +282,35 @@ def bulk_reject(request):
         record_ids = request.POST.getlist('record_ids')
         reason = request.POST.get('reason', '')
         
+        print(f"🔍 [BULK REJECT] Received request from user: {request.user}")
+        print(f"📊 [BULK REJECT] Record IDs received: {record_ids}")
+        print(f"📊 [BULK REJECT] Total count: {len(record_ids)}")
+        print(f"📝 [BULK REJECT] Reason: {reason if reason else '(none)'}")
+        
         if not record_ids:
+            print("❌ [BULK REJECT] No records selected!")
             messages.warning(request, 'Hech qanday yozuv tanlanmadi!')
             return redirect('master:pending_approvals')
         
-        # Reject all selected records
+        # Reject all selected records (only from current tenant)
         count = 0
         for record_id in record_ids:
             try:
-                record = WorkRecord.objects.get(id=record_id, status=WorkRecord.Status.PENDING)
+                record = WorkRecord.objects.get(
+                    id=record_id,
+                    tenant=request.tenant,
+                    status=WorkRecord.Status.PENDING
+                )
                 if reason:
                     record.notes = f"Rad etildi: {reason}"
                 record.reject()
                 count += 1
+                print(f"✅ [BULK REJECT] Rejected record {record_id} (#{count})")
             except WorkRecord.DoesNotExist:
+                print(f"❌ [BULK REJECT] Record {record_id} not found or not pending!")
                 continue
         
+        print(f"🎉 [BULK REJECT] Successfully rejected {count} records!")
         messages.warning(request, f'{count} ta yozuv rad etildi.')
         return redirect('master:pending_approvals')
     

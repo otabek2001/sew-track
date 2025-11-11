@@ -50,6 +50,8 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     'core',
     'apps.accounts',
+    'apps.tenants',
+    'apps.admin_panel',
     'apps.dashboard',
     'apps.master',
     'apps.employees',
@@ -68,6 +70,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Tenant middleware - must be after AuthenticationMiddleware
+    'apps.tenants.middleware.TenantMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

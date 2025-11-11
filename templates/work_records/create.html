@@ -211,7 +211,7 @@ function workRecordForm() {
             this.loadingTasks = true;
             
             try {
-                const url = `/api/v1/tasks/api/product/${this.selectedProduct}/tasks/`;
+                const url = `/api/product/${this.selectedProduct}/tasks/`;
                 const response = await fetch(url);
                 const html = await response.text();
                 
@@ -253,7 +253,7 @@ function workRecordForm() {
             }
             
             try {
-                const url = `/api/v1/tasks/api/calculate-price/?product=${this.selectedProduct}&task=${this.selectedTask}&quantity=${this.quantity}`;
+                const url = `/api/calculate-price/?product=${this.selectedProduct}&task=${this.selectedTask}&quantity=${this.quantity}`;
                 const response = await fetch(url);
                 const data = await response.json();
                 

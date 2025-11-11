@@ -24,6 +24,13 @@ class Task(TimeStampedModel):
         QUALITY_CHECK = 'quality_check', 'Quality Check'
         OTHER = 'other', 'Other'
     
+    tenant = models.ForeignKey(
+        'tenants.Tenant',
+        on_delete=models.CASCADE,
+        related_name='tasks',
+        verbose_name='Tenant',
+        help_text='Workshop this task belongs to'
+    )
     code = models.CharField(
         max_length=50,
         unique=True,
@@ -64,9 +71,11 @@ class Task(TimeStampedModel):
         verbose_name_plural = 'Tasks'
         ordering = ['sequence_order', 'code']
         indexes = [
+            models.Index(fields=['tenant']),
             models.Index(fields=['code']),
             models.Index(fields=['category']),
             models.Index(fields=['is_active']),
+            models.Index(fields=['tenant', 'is_active']),
         ]
     
     def __str__(self):
@@ -90,6 +99,13 @@ class WorkRecord(TimeStampedModel):
         REJECTED = 'rejected', 'Rejected'
         APPROVED = 'approved', 'Approved'
     
+    tenant = models.ForeignKey(
+        'tenants.Tenant',
+        on_delete=models.CASCADE,
+        related_name='work_records',
+        verbose_name='Tenant',
+        help_text='Workshop this work record belongs to'
+    )
     employee = models.ForeignKey(
         'employees.Employee',
         on_delete=models.CASCADE,
@@ -167,10 +183,13 @@ class WorkRecord(TimeStampedModel):
         verbose_name_plural = 'Work Records'
         ordering = ['-work_date', '-created_at']
         indexes = [
+            models.Index(fields=['tenant']),
             models.Index(fields=['employee', 'work_date']),
             models.Index(fields=['status']),
             models.Index(fields=['work_date']),
             models.Index(fields=['product', 'task']),
+            models.Index(fields=['tenant', 'status']),
+            models.Index(fields=['tenant', 'work_date']),
         ]
     
     def __str__(self):

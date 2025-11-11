@@ -20,6 +20,13 @@ class Product(TimeStampedModel):
         ACCESSORIES = 'accessories', 'Accessories'
         OTHER = 'other', 'Other'
     
+    tenant = models.ForeignKey(
+        'tenants.Tenant',
+        on_delete=models.CASCADE,
+        related_name='products',
+        verbose_name='Tenant',
+        help_text='Workshop this product belongs to'
+    )
     article_code = models.CharField(
         max_length=50,
         unique=True,
@@ -57,9 +64,11 @@ class Product(TimeStampedModel):
         verbose_name_plural = 'Products'
         ordering = ['article_code']
         indexes = [
+            models.Index(fields=['tenant']),
             models.Index(fields=['article_code']),
             models.Index(fields=['category']),
             models.Index(fields=['is_active']),
+            models.Index(fields=['tenant', 'is_active']),
         ]
     
     def __str__(self):

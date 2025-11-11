@@ -13,6 +13,11 @@ urlpatterns = [
     
     # Pending Approvals
     path('pending/', views.pending_approvals, name='pending_approvals'),
+    path('pending-simple/', lambda request: __import__('django.shortcuts').shortcuts.render(request, 'master/pending_simple.html', {
+        'records': __import__('apps.tasks.models').tasks.models.WorkRecord.objects.filter(status='pending').select_related('employee', 'product', 'task')[:20],
+        'stats': {'count': __import__('apps.tasks.models').tasks.models.WorkRecord.objects.filter(status='pending').count()},
+        'date_filter': 'all'
+    }), name='pending_simple'),
     path('record/<uuid:record_id>/', views.work_record_detail_master, name='record_detail'),
     
     # Single Actions

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Operatsiyalar - {{ tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 pb-8">
+    <header class="bg-white border-b sticky top-0 z-40 shadow-sm">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <a href="{% url 'admin_panel:dashboard' %}" class="text-gray-600">
+                        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                    </a>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Operatsiyalar</h1>
+                        <p class="text-sm text-gray-500">{{ stats.total }} ta</p>
+                    </div>
+                </div>
+                <a href="{% url 'admin_panel:task_create' %}" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2">
+                    <i data-lucide="plus" class="w-5 h-5"></i>
+                    <span class="hidden md:inline">Yangi</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-6">
+        {% if tasks %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">№</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kod</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nomi</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kategoriya</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Holat</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Harakatlar</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for task in tasks %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ task.sequence_order }}</td>
+                        <td class="px-6 py-4 text-sm font-mono text-gray-800">{{ task.code }}</td>
+                        <td class="px-6 py-4 font-medium text-gray-800">{{ task.name_uz }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ task.get_category_display }}</td>
+                        <td class="px-6 py-4">
+                            {% if task.is_active %}
+                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Aktiv</span>
+                            {% else %}
+                            <span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">Faol emas</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <a href="{% url 'admin_panel:task_edit' task.id %}" class="text-purple-600 hover:text-purple-700">
+                                <i data-lucide="edit" class="w-5 h-5"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="bg-white rounded-xl shadow-sm border p-12 text-center">
+            <div class="w-20 h-20 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
+                <i data-lucide="list" class="w-10 h-10 text-purple-600"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Hali operatsiya yo'q</h3>
+            <a href="{% url 'admin_panel:task_create' %}" class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium">
+                <i data-lucide="plus" class="w-5 h-5"></i>
+                <span>Operatsiya qo'shish</span>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons());</script>
+{% endblock %}
+

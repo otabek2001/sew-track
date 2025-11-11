@@ -62,6 +62,7 @@ def work_record_create(request):
             
             # Create work record
             work_record = WorkRecord.objects.create(
+                tenant=request.tenant,
                 employee=employee,
                 product=product,
                 task=task,
@@ -92,7 +93,11 @@ def work_record_create(request):
             })
     
     # GET request - show form
-    products = Product.objects.filter(is_active=True).order_by('article_code')
+    # Filter products by current tenant
+    products = Product.objects.filter(
+        tenant=request.tenant,
+        is_active=True
+    ).order_by('article_code')
     
     return render(request, 'work_records/create.html', {
         'products': products,
@@ -106,10 +111,16 @@ def get_product_tasks(request, product_id):
     Returns HTML select options.
     """
     try:
-        product = Product.objects.get(id=product_id, is_active=True)
+        product = Product.objects.get(
+            id=product_id,
+            tenant=request.tenant,
+            is_active=True
+        )
         product_tasks = ProductTask.objects.filter(
             product=product
-        ).select_related('task').order_by('task__sequence_order')
+        ).select_related('task').filter(
+            task__tenant=request.tenant
+        ).order_by('task__sequence_order')
         
         return render(request, 'work_records/_task_options.html', {
             'product_tasks': product_tasks,
@@ -166,10 +177,11 @@ def work_records_list(request):
     date_filter = request.GET.get('date', 'today')
     status_filter = request.GET.get('status', 'all')
     
-    # Base query
-    records = WorkRecord.objects.filter(employee=employee).select_related(
-        'product', 'task', 'approved_by'
-    )
+    # Base query - filter by tenant and employee
+    records = WorkRecord.objects.filter(
+        tenant=request.tenant,
+        employee=employee
+    ).select_related('product', 'task', 'approved_by')
     
     # Date filter
     today = date.today()

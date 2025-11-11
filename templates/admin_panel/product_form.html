@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}{% if product %}Tahrirlash{% else %}Yangi mahsulot{% endif %} - {{tenant.name}}{% endblock %}
+{% block content %}
+<div class="min-h-screen bg-gray-50 pb-8">
+    <header class="bg-white border-b">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center gap-3">
+                <a href="{% url 'admin_panel:product_list' %}" class="text-gray-600"><i data-lucide="arrow-left" class="w-6 h-6"></i></a>
+                <h1 class="text-2xl font-bold">{% if product %}Tahrirlash{% else %}Yangi mahsulot{% endif %}</h1>
+            </div>
+        </div>
+    </header>
+    <div class="container mx-auto px-4 py-6 max-w-2xl">
+        <div class="bg-white rounded-xl shadow-sm border p-6">
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-sm font-medium mb-2">Kod <span class="text-red-500">*</span></label>
+                    <input type="text" name="article_code" value="{% if product %}{{product.article_code}}{% endif %}" {% if product %}readonly{% endif %} required class="w-full h-12 px-4 border-2 rounded-lg focus:border-green-500 focus:ring-4 focus:ring-green-100 focus:outline-none" placeholder="ART-001">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Nomi <span class="text-red-500">*</span></label>
+                    <input type="text" name="name" value="{% if product %}{{product.name}}{% endif %}" required class="w-full h-12 px-4 border-2 rounded-lg focus:border-green-500 focus:ring-4 focus:ring-green-100 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Kategoriya <span class="text-red-500">*</span></label>
+                    <select name="category" required class="w-full h-12 px-4 border-2 rounded-lg focus:border-green-500 focus:ring-4 focus:ring-green-100 focus:outline-none">
+                        <option value="mens" {% if product.category == 'mens' %}selected{% endif %}>Erkaklar</option>
+                        <option value="womens" {% if product.category == 'womens' %}selected{% endif %}>Ayollar</option>
+                        <option value="kids" {% if product.category == 'kids' %}selected{% endif %}>Bolalar</option>
+                        <option value="accessories" {% if product.category == 'accessories' %}selected{% endif %}>Aksessuarlar</option>
+                        <option value="other" {% if product.category == 'other' %}selected{% endif %}>Boshqa</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Tavsif</label>
+                    <textarea name="description" rows="3" class="w-full px-4 py-3 border-2 rounded-lg focus:border-green-500 focus:ring-4 focus:ring-green-100 focus:outline-none">{% if product %}{{product.description}}{% endif %}</textarea>
+                </div>
+                {% if product %}
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" name="is_active" id="is_active" {% if product.is_active %}checked{% endif %} class="w-5 h-5 text-green-600 rounded">
+                    <label for="is_active" class="text-sm font-medium">Aktiv</label>
+                </div>
+                {% endif %}
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" class="flex-1 h-12 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg flex items-center justify-center gap-2">
+                        <i data-lucide="check" class="w-5 h-5"></i>
+                        <span>Saqlash</span>
+                    </button>
+                    <a href="{% url 'admin_panel:product_list' %}" class="flex-1 h-12 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg flex items-center justify-center gap-2">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                        <span>Bekor qilish</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons());</script>
+{% endblock %}
+

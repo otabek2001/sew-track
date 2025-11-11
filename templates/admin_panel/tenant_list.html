@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tsexlar - Boshqaruv paneli{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 pb-8">
+    <!-- Header -->
+    <header class="bg-white border-b sticky top-0 z-40 shadow-sm">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">Mening tsexlarim</h1>
+                    <p class="text-sm text-gray-500">{{ tenants.count }} ta tsex</p>
+                </div>
+                
+                <a 
+                    href="{% url 'admin_panel:tenant_create' %}"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition"
+                >
+                    <i data-lucide="plus" class="w-5 h-5"></i>
+                    <span>Yangi tsex</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Tenants Grid -->
+    <div class="container mx-auto px-4 py-6">
+        {% if tenants %}
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for tenant in tenants %}
+            <div class="bg-white rounded-xl shadow-sm border-2 {% if request.tenant.id == tenant.id %}border-indigo-300 bg-indigo-50{% else %}border-gray-200{% endif %} overflow-hidden hover:shadow-md transition">
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-indigo-600 font-bold text-xl">
+                            {{ tenant.name|first }}
+                        </div>
+                        {% if request.tenant.id == tenant.id %}
+                        <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-xs font-medium text-white">
+                            <i data-lucide="check-circle" class="w-3 h-3 inline"></i> Aktiv
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Content -->
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">{{ tenant.name }}</h3>
+                    
+                    {% if tenant.address %}
+                    <div class="flex items-start gap-2 text-sm text-gray-600 mb-2">
+                        <i data-lucide="map-pin" class="w-4 h-4 mt-0.5"></i>
+                        <p>{{ tenant.address }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if tenant.phone %}
+                    <div class="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                        <i data-lucide="phone" class="w-4 h-4"></i>
+                        <p>{{ tenant.phone }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Status -->
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-gray-500">Holat:</span>
+                            <span class="font-medium {% if tenant.is_active %}text-green-600{% else %}text-red-600{% endif %}">
+                                {% if tenant.is_active %}Aktiv{% else %}Faol emas{% endif %}
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm mt-2">
+                            <span class="text-gray-500">Yaratilgan:</span>
+                            <span class="font-medium text-gray-700">{{ tenant.created_at|date:"d.m.Y" }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="mt-6 flex gap-2">
+                        {% if request.tenant.id != tenant.id %}
+                        <a 
+                            href="{% url 'admin_panel:switch_tenant' tenant.id %}"
+                            class="flex-1 h-10 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg flex items-center justify-center gap-2 transition"
+                        >
+                            <i data-lucide="arrow-right-circle" class="w-4 h-4"></i>
+                            <span>Tanlash</span>
+                        </a>
+                        {% else %}
+                        <a 
+                            href="{% url 'admin_panel:dashboard' %}"
+                            class="flex-1 h-10 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg flex items-center justify-center gap-2 transition"
+                        >
+                            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'admin_panel:tenant_edit' tenant.id %}" class="h-10 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition flex items-center justify-center">
+                            <i data-lucide="settings" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-16">
+            <div class="w-20 h-20 mx-auto mb-4 bg-indigo-100 rounded-full flex items-center justify-center">
+                <i data-lucide="building-2" class="w-10 h-10 text-indigo-600"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Hali tsex yo'q</h3>
+            <p class="text-gray-600 mb-6">Birinchi tsexingizni yarating</p>
+            <a 
+                href="{% url 'admin_panel:tenant_create' %}"
+                class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition"
+            >
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                <span>Tsex yaratish</span>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+});
+</script>
+{% endblock %}
+

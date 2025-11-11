@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if employee %}Tahrirlash{% else %}Yangi xodim{% endif %} - {{ tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 pb-8">
+    <!-- Header -->
+    <header class="bg-white border-b sticky top-0 z-40 shadow-sm">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center gap-3">
+                <a href="{% url 'admin_panel:employee_list' %}" class="text-gray-600">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </a>
+                <h1 class="text-2xl font-bold text-gray-800">
+                    {% if employee %}Xodimni tahrirlash{% else %}Yangi xodim qo'shish{% endif %}
+                </h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Form -->
+    <div class="container mx-auto px-4 py-6">
+        <div class="max-w-3xl mx-auto">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- User Account Section -->
+                {% if not employee %}
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <i data-lucide="user-circle" class="w-5 h-5"></i>
+                        <span>Foydalanuvchi hisob</span>
+                    </h2>
+                    
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <!-- Username -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Login (Username) <span class="text-red-500">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                name="username"
+                                required
+                                placeholder="user123"
+                                class="w-full h-12 px-4 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition"
+                            >
+                        </div>
+                        
+                        <!-- Password -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Parol <span class="text-red-500">*</span>
+                            </label>
+                            <input 
+                                type="password" 
+                                name="password"
+                                required
+                                placeholder="••••••••"
+                                class="w-full h-12 px-4 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition"
+                            >
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Personal Info Section -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                        <span>Shaxsiy ma'lumotlar</span>
+                    </h2>
+                    
+                    <!-- Full Name -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            To'liq ism <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="full_name"
+                            value="{% if employee %}{{ employee.full_name }}{% endif %}"
+                            required
+                            placeholder="Ism Familiya"
+                            class="w-full h-12 px-4 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition"
+                        >
+                    </div>
+                    
+                    <!-- Phone -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Telefon <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="tel" 
+                            name="phone"
+                            value="{% if employee %}{{ employee.phone }}{% endif %}"
+                            required
+                            placeholder="+998 90 123 45 67"
+                            class="w-full h-12 px-4 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition"
+                        >
+                    </div>
+                </div>
+
+                <!-- Employment Details Section -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <i data-lucide="briefcase" class="w-5 h-5"></i>
+                        <span>Ish ma'lumotlari</span>
+                    </h2>
+                    
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <!-- Position -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Lavozim <span class="text-red-500">*</span>
+                            </label>
+                            <select 
+                                name="position"
+                                required
+                                class="w-full h-12 px-4 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition"
+                            >
+                                <option value="">Tanlang</option>
+                                <option value="worker" {% if employee and employee.position == 'worker' %}selected{% endif %}>Ishchi</option>
+                                <option value="master" {% if employee and employee.position == 'master' %}selected{% endif %}>Master</option>
+                                <option value="quality_controller" {% if employee and employee.position == 'quality_controller' %}selected{% endif %}>Sifat nazoratchi</option>
+                                <option value="supervisor" {% if employee and employee.position == 'supervisor' %}selected{% endif %}>Nazoratchi</option>
+                            </select>
+                        </div>
+                        
+                        <!-- User Role -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Tizim roli <span class="text-red-500">*</span>
+                            </label>
+                            <select 
+                                name="user_role"
+                                required
+                                class="w-full h-12 px-4 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition"
+                            >
+                                <option value="">Tanlang</option>
+                                <option value="worker" {% if employee and employee.user.role == 'worker' %}selected{% endif %}>Ishchi</option>
+                                <option value="master" {% if employee and employee.user.role == 'master' %}selected{% endif %}>Master</option>
+                                <option value="accountant" {% if employee and employee.user.role == 'accountant' %}selected{% endif %}>Buxgalter</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Employment Type -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Ish turi
+                            </label>
+                            <select 
+                                name="employment_type"
+                                class="w-full h-12 px-4 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition"
+                            >
+                                <option value="full_time" {% if employee and employee.employment_type == 'full_time' %}selected{% endif %}>To'liq stavka</option>
+                                <option value="part_time" {% if employee and employee.employment_type == 'part_time' %}selected{% endif %}>Yarim stavka</option>
+                                <option value="contract" {% if employee and employee.employment_type == 'contract' %}selected{% endif %}>Kontrakt</option>
+                                <option value="temporary" {% if employee and employee.employment_type == 'temporary' %}selected{% endif %}>Vaqtincha</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Hourly Rate -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Soatlik to'lov (so'm)
+                            </label>
+                            <input 
+                                type="number" 
+                                name="hourly_rate"
+                                value="{% if employee %}{{ employee.hourly_rate }}{% else %}15000{% endif %}"
+                                min="0"
+                                step="1000"
+                                class="w-full h-12 px-4 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition"
+                            >
+                        </div>
+                        
+                        <!-- Hire Date -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Ishga qabul qilish sanasi <span class="text-red-500">*</span>
+                            </label>
+                            <input 
+                                type="date" 
+                                name="hired_at"
+                                value="{% if employee %}{{ employee.hired_at|date:'Y-m-d' }}{% else %}{{ today|date:'Y-m-d' }}{% endif %}"
+                                required
+                                class="w-full h-12 px-4 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="flex gap-3">
+                    <button 
+                        type="submit"
+                        class="flex-1 h-14 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition flex items-center justify-center gap-2"
+                    >
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                        <span>{% if employee %}Saqlash{% else %}Yaratish{% endif %}</span>
+                    </button>
+                    <a 
+                        href="{% url 'admin_panel:employee_list' %}"
+                        class="flex-1 h-14 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition flex items-center justify-center gap-2"
+                    >
+                        <i data-lucide="x-circle" class="w-5 h-5"></i>
+                        <span>Bekor qilish</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+});
+</script>
+{% endblock %}
+

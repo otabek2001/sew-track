@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}{% if task %}Tahrirlash{% else %}Yangi operatsiya{% endif %} - {{tenant.name}}{% endblock %}
+{% block content %}
+<div class="min-h-screen bg-gray-50 pb-8">
+    <header class="bg-white border-b">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center gap-3">
+                <a href="{% url 'admin_panel:task_list' %}" class="text-gray-600"><i data-lucide="arrow-left" class="w-6 h-6"></i></a>
+                <h1 class="text-2xl font-bold">{% if task %}Tahrirlash{% else %}Yangi operatsiya{% endif %}</h1>
+            </div>
+        </div>
+    </header>
+    <div class="container mx-auto px-4 py-6 max-w-2xl">
+        <div class="bg-white rounded-xl shadow-sm border p-6">
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-sm font-medium mb-2">Kod <span class="text-red-500">*</span></label>
+                    <input type="text" name="code" value="{% if task %}{{task.code}}{% endif %}" {% if task %}readonly{% endif %} required class="w-full h-12 px-4 border-2 rounded-lg focus:border-purple-500" placeholder="TASK-001">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Nomi (O'zbekcha) <span class="text-red-500">*</span></label>
+                    <input type="text" name="name_uz" value="{% if task %}{{task.name_uz}}{% endif %}" required class="w-full h-12 px-4 border-2 rounded-lg focus:border-purple-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Nomi (Ruscha)</label>
+                    <input type="text" name="name_ru" value="{% if task %}{{task.name_ru}}{% endif %}" class="w-full h-12 px-4 border-2 rounded-lg focus:border-purple-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Kategoriya <span class="text-red-500">*</span></label>
+                        <select name="category" required class="w-full h-12 px-4 border-2 rounded-lg focus:border-purple-500">
+                            <option value="sewing" {% if task.category == 'sewing' %}selected{% endif %}>Tikuv</option>
+                            <option value="cutting" {% if task.category == 'cutting' %}selected{% endif %}>Kesish</option>
+                            <option value="ironing" {% if task.category == 'ironing' %}selected{% endif %}>Dazmollash</option>
+                            <option value="quality_check" {% if task.category == 'quality_check' %}selected{% endif %}>Sifat nazorati</option>
+                            <option value="packaging" {% if task.category == 'packaging' %}selected{% endif %}>Qadoqlash</option>
+                            <option value="other" {% if task.category == 'other' %}selected{% endif %}>Boshqa</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Tartib raqami</label>
+                        <input type="number" name="sequence_order" value="{% if task %}{{task.sequence_order}}{% else %}0{% endif %}" class="w-full h-12 px-4 border-2 rounded-lg focus:border-purple-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Tavsif</label>
+                    <textarea name="description" rows="3" class="w-full px-4 py-3 border-2 rounded-lg focus:border-purple-500">{% if task %}{{task.description}}{% endif %}</textarea>
+                </div>
+                {% if task %}
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" name="is_active" id="is_active" {% if task.is_active %}checked{% endif %} class="w-5 h-5 text-purple-600 rounded">
+                    <label for="is_active" class="text-sm font-medium">Aktiv</label>
+                </div>
+                {% endif %}
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" class="flex-1 h-12 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg flex items-center justify-center gap-2">
+                        <i data-lucide="check" class="w-5 h-5"></i>
+                        <span>Saqlash</span>
+                    </button>
+                    <a href="{% url 'admin_panel:task_list' %}" class="flex-1 h-12 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg flex items-center justify-center gap-2">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                        <span>Bekor qilish</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons());</script>
+{% endblock %}
+

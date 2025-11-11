@@ -13,6 +13,7 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 from apps.dashboard import views
+from apps.accounts.web_views import CustomLoginView
 
 
 def home_redirect(request):
@@ -20,8 +21,14 @@ def home_redirect(request):
     if not request.user.is_authenticated:
         return redirect('login')
     
-    # Check if master/admin
-    if request.user.is_staff or request.user.is_master_or_above:
+    user = request.user
+    
+    # Owner/Tenant Admin → Admin Panel
+    if user.role in [user.Role.SUPER_ADMIN, user.Role.TENANT_ADMIN]:
+        return redirect('admin_panel:dashboard')
+    
+    # Master → Master Panel
+    if user.role == user.Role.MASTER:
         return redirect('master:dashboard')
     
     # Regular worker
@@ -33,11 +40,14 @@ urlpatterns = [
     path('', home_redirect, name='home'),
     
     # Authentication
-    path('login/', auth_views.LoginView.as_view(), name='login'),
+    path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     
     # Dashboard (Web UI)
     path('dashboard/', include('apps.dashboard.urls')),
+    
+    # Admin Panel (Owner/Tenant Admin)
+    path('admin-panel/', include('apps.admin_panel.urls')),
     
     # Master Panel
     path('master/', include('apps.master.urls')),
@@ -46,8 +56,9 @@ urlpatterns = [
     path('statistics/', views.statistics, name='statistics'),
     path('profile/', views.profile, name='profile'),
     
-    # Test page for debugging
+    # Test pages for debugging
     path('test/', lambda request: __import__('django.shortcuts').shortcuts.render(request, 'test.html'), name='test'),
+    path('master/test/', lambda request: __import__('django.shortcuts').shortcuts.render(request, 'master/test_page.html'), name='master_test'),
     
     # Admin
     path('admin/', admin.site.urls),
@@ -57,11 +68,13 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     
+    # Work Records (Web UI)
+    path('', include('apps.tasks.urls')),
+    
     # API v1
     path('api/v1/accounts/', include('apps.accounts.urls')),
     path('api/v1/employees/', include('apps.employees.urls')),
     path('api/v1/', include('apps.products.urls')),
-    path('api/v1/tasks/', include('apps.tasks.urls')),
 ]
 
 # Debug Toolbar (only in development)

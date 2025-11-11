@@ -184,8 +184,11 @@ def tv_dashboard(request):
     current_time = now.strftime('%H:%M:%S')
     current_date = now.strftime('%d.%m.%Y, %A')
     
-    # Company-wide statistics for today
-    today_records = WorkRecord.objects.filter(work_date=today)
+    # Company-wide statistics for today (current tenant only)
+    today_records = WorkRecord.objects.filter(
+        tenant=request.tenant,
+        work_date=today
+    )
     
     stats = {
         'total_production': today_records.aggregate(
@@ -211,8 +214,9 @@ def tv_dashboard(request):
     for hour in range(start_hour, min(current_hour + 1, 19)):  # Until 18:00
         chart_labels.append(f'{hour:02d}:00')
         
-        # Get production for this hour
+        # Get production for this hour (current tenant only)
         hour_production = WorkRecord.objects.filter(
+            tenant=request.tenant,
             work_date=today,
             created_at__hour=hour
         ).aggregate(Sum('quantity'))['quantity__sum'] or 0
@@ -237,8 +241,11 @@ def tv_kpi_stats(request):
     """
     today = date.today()
     
-    # Company-wide statistics
-    today_records = WorkRecord.objects.filter(work_date=today)
+    # Company-wide statistics (current tenant only)
+    today_records = WorkRecord.objects.filter(
+        tenant=request.tenant,
+        work_date=today
+    )
     
     stats = {
         'total_production': today_records.aggregate(
@@ -263,8 +270,9 @@ def tv_top_performers(request):
     """
     today = date.today()
     
-    # Get top performers for today
+    # Get top performers for today (current tenant only)
     top_performers = WorkRecord.objects.filter(
+        tenant=request.tenant,
         work_date=today
     ).values(
         'employee__full_name'

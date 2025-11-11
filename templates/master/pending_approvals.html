@@ -18,14 +18,13 @@
                         <p class="text-sm text-gray-500">{{ stats.count|default:0 }} ta</p>
                     </div>
                 </div>
-                <div x-data="{ selectAll: false }">
-                    <button 
-                        @click="selectAll = !selectAll; document.querySelectorAll('.record-checkbox').forEach(cb => cb.checked = selectAll)"
-                        class="text-purple-600 text-sm font-medium"
-                    >
-                        <span x-text="selectAll ? 'Bekor qilish' : 'Hammasini tanlash'">Hammasi</span>
-                    </button>
-                </div>
+                <button 
+                    onclick="toggleSelectAll()"
+                    class="text-purple-600 text-sm font-medium"
+                    id="select-all-btn"
+                >
+                    Hammasini tanlash
+                </button>
             </div>
         </div>
     </header>
@@ -110,19 +109,19 @@
     <!-- Records List with Checkboxes -->
     <div class="p-4 space-y-3">
         {% if records %}
-        <form method="post" id="bulk-form" x-data="bulkActions()">
+        <form method="post" id="bulk-form">
             {% csrf_token %}
             
             <!-- Records -->
             {% for record in records %}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4" x-data="{ showSingleReject: false }">
                 <div class="flex items-start gap-3">
                     <!-- Checkbox -->
                     <input 
                         type="checkbox" 
                         name="record_ids" 
                         value="{{ record.id }}"
-                        @change="updateSelection()"
+                        onchange="updateSelectionCount()"
                         class="record-checkbox w-6 h-6 mt-1 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
                     >
                     
@@ -162,25 +161,59 @@
 
                         <!-- Single Actions (Mobile) -->
                         <div class="flex gap-2 mt-3">
-                            <form method="post" action="{% url 'master:approve_record' record.id %}" class="flex-1">
-                                {% csrf_token %}
                                 <button 
-                                    type="submit"
-                                    class="w-full h-10 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition touch-feedback flex items-center justify-center gap-1"
-                                    onclick="return confirm('Tasdiqlaysizmi?')"
+                                type="button"
+                                class="flex-1 h-10 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition touch-feedback flex items-center justify-center gap-1"
+                                onclick="handleSingleApprove('{{ record.id }}')"
                                 >
                                     <i data-lucide="check" class="w-4 h-4"></i>
                                     Tasdiqlash
                                 </button>
-                            </form>
                             
                             <button 
-                                @click="rejectRecord('{{ record.id }}')"
+                                @click="showSingleReject = true"
+                                type="button"
                                 class="flex-1 h-10 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium rounded-lg transition touch-feedback flex items-center justify-center gap-1"
                             >
                                 <i data-lucide="x" class="w-4 h-4"></i>
                                 Rad etish
                             </button>
+                        </div>
+                        
+                        <!-- Single Reject Modal (inside record card) -->
+                        <div 
+                            x-show="showSingleReject"
+                            x-transition
+                            x-cloak
+                            style="display: none;"
+                            class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+                            @click.self="showSingleReject = false"
+                        >
+                            <div class="bg-white rounded-xl p-6 max-w-md w-full" @click.stop>
+                                <h3 class="text-xl font-bold text-gray-800 mb-4">Rad etish sababi</h3>
+                                    <textarea 
+                                    id="single-reject-reason-{{ record.id }}"
+                                        rows="3"
+                                        placeholder="Sabab kiriting (ixtiyoriy)..."
+                                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-red-500 focus:ring-4 focus:ring-red-100 focus:outline-none mb-4"
+                                    ></textarea>
+                                    <div class="flex gap-3">
+                                        <button 
+                                        type="button"
+                                            class="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition"
+                                        onclick="handleSingleReject('{{ record.id }}')"
+                                        >
+                                            Rad etish
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            @click="showSingleReject = false"
+                                            class="flex-1 h-12 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition"
+                                        >
+                                            Bekor qilish
+                                        </button>
+                                    </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -189,19 +222,18 @@
 
             <!-- Bulk Action Buttons (Sticky Bottom) -->
             <div 
-                x-show="selectedCount > 0"
-                x-transition
+                id="bulk-actions-bar"
+                style="display: none;"
                 class="fixed bottom-20 md:bottom-4 left-4 right-4 bg-white rounded-xl shadow-2xl border-2 border-purple-200 p-4 z-20"
             >
                 <p class="text-sm text-gray-600 mb-3">
-                    <span class="font-bold text-purple-600" x-text="selectedCount">0</span> ta yozuv tanlandi
+                    <span class="font-bold text-purple-600" id="selected-count">0</span> ta yozuv tanlandi
                 </p>
                 <div class="flex gap-3">
                     <button 
-                        type="submit"
-                        formaction="{% url 'master:bulk_approve' %}"
+                        type="button"
                         class="flex-1 h-12 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition touch-feedback flex items-center justify-center gap-2"
-                        onclick="return confirm('Tanlanganlarni tasdiqlaysizmi?')"
+                        onclick="handleBulkApprove(event)"
                     >
                         <i data-lucide="check-circle" class="w-5 h-5"></i>
                         Tasdiqlash
@@ -209,7 +241,7 @@
                     
                     <button 
                         type="button"
-                        @click="showBulkReject = true"
+                        onclick="handleBulkReject(event)"
                         class="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition touch-feedback flex items-center justify-center gap-2"
                     >
                         <i data-lucide="x-circle" class="w-5 h-5"></i>
@@ -220,14 +252,15 @@
 
             <!-- Bulk Reject Modal -->
             <div 
-                x-show="showBulkReject"
-                x-transition
+                id="bulk-reject-modal"
+                style="display: none;"
                 class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
-                @click.self="showBulkReject = false"
+                onclick="if(event.target === this) closeBulkRejectModal()"
             >
                 <div class="bg-white rounded-xl p-6 max-w-md w-full">
                     <h3 class="text-xl font-bold text-gray-800 mb-4">Rad etish sababi</h3>
                     <textarea 
+                        id="bulk-reject-reason"
                         name="reason"
                         rows="3"
                         placeholder="Sabab kiriting (ixtiyoriy)..."
@@ -235,15 +268,15 @@
                     ></textarea>
                     <div class="flex gap-3">
                         <button 
-                            type="submit"
-                            formaction="{% url 'master:bulk_reject' %}"
+                            type="button"
                             class="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition"
+                            onclick="confirmBulkReject(event)"
                         >
                             Rad etish
                         </button>
                         <button 
                             type="button"
-                            @click="showBulkReject = false"
+                            onclick="closeBulkRejectModal()"
                             class="flex-1 h-12 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition"
                         >
                             Bekor qilish
@@ -270,22 +303,275 @@
 {% include 'master/components/_master_nav.html' with pending_count=stats.count %}
 
 <script>
-function bulkActions() {
-    return {
-        selectedCount: 0,
-        showBulkReject: false,
+// Vanilla JS - Simple and reliable!
+
+// Update selection count and show/hide bulk actions bar
+function updateSelectionCount() {
+    const count = document.querySelectorAll('.record-checkbox:checked').length;
+    
+    // Update count display
+    const countEl = document.getElementById('selected-count');
+    if (countEl) {
+        countEl.textContent = count;
+    }
+    
+    // Show/hide bulk actions bar
+    const bulkBar = document.getElementById('bulk-actions-bar');
+    if (bulkBar) {
+        bulkBar.style.display = count > 0 ? 'block' : 'none';
+    }
+    
+    console.log('✅ Selected:', count);
+}
+
+// Toggle select all checkboxes
+function toggleSelectAll() {
+    const checkboxes = document.querySelectorAll('.record-checkbox');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    
+    checkboxes.forEach(cb => {
+        cb.checked = !allChecked;
+    });
+    
+    // Update button text
+    const btn = document.getElementById('select-all-btn');
+    if (btn) {
+        btn.textContent = allChecked ? 'Hammasini tanlash' : 'Bekor qilish';
+    }
+    
+    updateSelectionCount();
+}
+
+// Handle bulk approve with validation
+function handleBulkApprove(event) {
+    // Prevent default form submission
+    if (event) {
+        event.preventDefault();
+    }
+    
+    const checkboxes = document.querySelectorAll('.record-checkbox:checked');
+    const count = checkboxes.length;
+    
+    console.log('🔍 Bulk Approve clicked');
+    console.log('📊 Selected count:', count);
+    
+    // Validation - agar hech narsa tanlanmasa
+    if (count === 0) {
+        console.log('❌ No records selected');
+        alert('⚠️ Iltimos, tasdiqlash uchun yozuvlarni tanlang!');
+        return false;
+    }
+    
+    // Log selected IDs
+    const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+    console.log('✅ Selected IDs:', selectedIds);
+    
+    // Confirmation with count
+    const message = `✅ ${count} ta yozuvni tasdiqlaysizmi?\n\nBu amal qaytarib bo'lmaydi.`;
+    const confirmed = confirm(message);
+    
+    console.log('💬 User confirmed:', confirmed);
+    
+    if (confirmed) {
+        console.log('🚀 Submitting form to server...');
         
-        updateSelection() {
-            this.selectedCount = document.querySelectorAll('.record-checkbox:checked').length;
+        // Get the form
+        const form = document.getElementById('bulk-form');
+        if (form) {
+            // Debug: Check form data before submission
+            const formData = new FormData(form);
+            const recordIdsInForm = formData.getAll('record_ids');
+            console.log('📋 Form data - record_ids:', recordIdsInForm);
+            console.log('📊 Count in form:', recordIdsInForm.length);
+            
+            // Verify all checkboxes are still checked
+            const stillChecked = document.querySelectorAll('.record-checkbox:checked');
+            console.log('✓ Still checked before submit:', stillChecked.length);
+            
+            // Set the action URL
+            form.action = "{% url 'master:bulk_approve' %}";
+            // Submit the form
+            console.log('📤 Form action set to:', form.action);
+            form.submit();
+        } else {
+            console.error('❌ Form not found!');
         }
+    } else {
+        console.log('❌ User cancelled');
+    }
+    
+    return false; // Always prevent default onclick behavior
+}
+
+// Handle bulk reject with validation
+function handleBulkReject(event) {
+    // Prevent default
+    if (event) {
+        event.preventDefault();
+    }
+    
+    const checkboxes = document.querySelectorAll('.record-checkbox:checked');
+    const count = checkboxes.length;
+    
+    console.log('🔍 Bulk Reject clicked');
+    console.log('📊 Selected count:', count);
+    
+    // Validation - agar hech narsa tanlanmasa
+    if (count === 0) {
+        console.log('❌ No records selected');
+        alert('⚠️ Iltimos, rad etish uchun yozuvlarni tanlang!');
+        return false;
+    }
+    
+    // Log selected IDs
+    const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+    console.log('✅ Selected IDs:', selectedIds);
+    
+    // Show modal
+    console.log('📝 Opening reject reason modal...');
+    showBulkRejectModal();
+}
+
+// Show bulk reject modal
+function showBulkRejectModal() {
+    const modal = document.getElementById('bulk-reject-modal');
+    if (modal) {
+        modal.style.display = 'flex';
     }
 }
 
-// Reinitialize icons
+// Close bulk reject modal
+function closeBulkRejectModal() {
+    const modal = document.getElementById('bulk-reject-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Confirm bulk reject (when submitting from modal)
+function confirmBulkReject(event) {
+    // Prevent default
+    if (event) {
+        event.preventDefault();
+    }
+    
+    const checkboxes = document.querySelectorAll('.record-checkbox:checked');
+    const count = checkboxes.length;
+    
+    console.log('🔍 Confirm Bulk Reject');
+    console.log('📊 Selected count:', count);
+    
+    const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+    console.log('✅ Selected IDs:', selectedIds);
+    
+    const message = `❌ ${count} ta yozuvni rad etasizmi?\n\nBu amal qaytarib bo'lmaydi.`;
+    const confirmed = confirm(message);
+    
+    console.log('💬 User confirmed:', confirmed);
+    
+    if (confirmed) {
+        console.log('🚀 Submitting reject form to server...');
+        
+        // Get the form
+        const form = document.getElementById('bulk-form');
+        if (form) {
+            // Set the action URL
+            form.action = "{% url 'master:bulk_reject' %}";
+            // Submit the form
+            console.log('📤 Form action set to:', form.action);
+            form.submit();
+        } else {
+            console.error('❌ Form not found!');
+        }
+    } else {
+        console.log('❌ User cancelled reject');
+        closeBulkRejectModal();
+    }
+    
+    return false; // Always prevent default
+}
+
+// Handle single record approve
+function handleSingleApprove(recordId) {
+    console.log('🔍 Single Approve clicked for:', recordId);
+    
+    if (!confirm('✅ Bu yozuvni tasdiqlaysizmi?')) {
+        console.log('❌ User cancelled single approve');
+        return;
+    }
+    
+    console.log('🚀 Submitting single approve...');
+    
+    // Create a form dynamically
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/master/approve/${recordId}/`;
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+    
+    // Add form to body and submit
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Handle single record reject
+function handleSingleReject(recordId) {
+    console.log('🔍 Single Reject clicked for:', recordId);
+    
+    // Get reason from textarea
+    const reasonTextarea = document.getElementById(`single-reject-reason-${recordId}`);
+    const reason = reasonTextarea ? reasonTextarea.value : '';
+    
+    if (!confirm('❌ Bu yozuvni rad etasizmi?')) {
+        console.log('❌ User cancelled single reject');
+        return;
+    }
+    
+    console.log('🚀 Submitting single reject...');
+    console.log('📝 Reason:', reason);
+    
+    // Create a form dynamically
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/master/reject/${recordId}/`;
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+    
+    // Add reason if provided
+    if (reason) {
+        const reasonInput = document.createElement('input');
+        reasonInput.type = 'hidden';
+        reasonInput.name = 'reason';
+        reasonInput.value = reason;
+        form.appendChild(reasonInput);
+    }
+    
+    // Add form to body and submit
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Reinitialize icons after page load
 document.addEventListener('DOMContentLoaded', function() {
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
+        console.log('✅ Lucide icons initialized');
     }
+    
+    // Initialize selection count
+    updateSelectionCount();
 });
 </script>
 {% endblock %}

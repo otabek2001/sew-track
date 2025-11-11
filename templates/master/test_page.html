@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Panel Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body class="bg-gray-50 p-4">
+    <div class="max-w-2xl mx-auto space-y-4">
+        <h1 class="text-2xl font-bold">Master Panel Test</h1>
+        
+        <!-- Test Card 1 -->
+        <div class="bg-white rounded-xl p-4 border">
+            <h3 class="font-bold mb-3">Test Record 1</h3>
+            <div class="flex gap-2">
+                <button class="flex-1 h-10 bg-green-600 text-white rounded-lg">
+                    ✅ Tasdiqlash
+                </button>
+                <button class="flex-1 h-10 bg-red-50 text-red-600 rounded-lg">
+                    ❌ Rad etish
+                </button>
+            </div>
+        </div>
+        
+        <!-- Test Card 2 with Alpine -->
+        <div class="bg-white rounded-xl p-4 border" x-data="{ showReject: false }">
+            <h3 class="font-bold mb-3">Test Record 2 (with Alpine.js)</h3>
+            <div class="flex gap-2">
+                <button 
+                    @click="alert('Approve clicked!')"
+                    class="flex-1 h-10 bg-green-600 text-white rounded-lg"
+                >
+                    ✅ Tasdiqlash
+                </button>
+                <button 
+                    @click="showReject = true"
+                    class="flex-1 h-10 bg-red-50 text-red-600 rounded-lg"
+                >
+                    ❌ Rad etish
+                </button>
+            </div>
+            
+            <!-- Modal -->
+            <div 
+                x-show="showReject"
+                x-transition
+                class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+                @click.self="showReject = false"
+                style="display: none;"
+            >
+                <div class="bg-white rounded-xl p-6 max-w-md w-full">
+                    <h3 class="text-xl font-bold mb-4">Rad etish</h3>
+                    <textarea class="w-full border-2 p-3 rounded-lg mb-4" rows="3"></textarea>
+                    <div class="flex gap-3">
+                        <button 
+                            @click="showReject = false; alert('Rejected!')"
+                            class="flex-1 h-12 bg-red-600 text-white rounded-lg"
+                        >
+                            Rad etish
+                        </button>
+                        <button 
+                            @click="showReject = false"
+                            class="flex-1 h-12 bg-gray-200 rounded-lg"
+                        >
+                            Bekor
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Debug Info -->
+        <div class="bg-gray-800 text-white rounded-xl p-4">
+            <h3 class="font-bold mb-2">Debug Info:</h3>
+            <p class="text-sm">Alpine.js: <span id="alpine-status">Loading...</span></p>
+            <p class="text-sm">Tailwind: <span class="text-green-400">✅ Working</span></p>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('alpine:initialized', () => {
+            document.getElementById('alpine-status').textContent = '✅ Working';
+            console.log('✅ Alpine.js loaded');
+        });
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    </script>
+</body>
+</html>
+

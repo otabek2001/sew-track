@@ -29,6 +29,13 @@ class Employee(TimeStampedModel):
         QUALITY_CONTROLLER = 'quality_controller', 'Quality Controller'
         SUPERVISOR = 'supervisor', 'Supervisor'
     
+    tenant = models.ForeignKey(
+        'tenants.Tenant',
+        on_delete=models.CASCADE,
+        related_name='employees',
+        verbose_name='Tenant',
+        help_text='Workshop this employee belongs to'
+    )
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
@@ -87,9 +94,11 @@ class Employee(TimeStampedModel):
         verbose_name_plural = 'Employees'
         ordering = ['-created_at']
         indexes = [
+            models.Index(fields=['tenant']),
             models.Index(fields=['user']),
             models.Index(fields=['position']),
             models.Index(fields=['is_active']),
+            models.Index(fields=['tenant', 'is_active']),
         ]
     
     def __str__(self):
