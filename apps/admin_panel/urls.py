@@ -44,5 +44,6 @@ urlpatterns = [
     path('reports/daily/', views.export_daily_report, name='export_daily'),
     path('reports/employee/<uuid:employee_id>/', views.export_employee_report, name='export_employee'),
     path('reports/monthly/', views.export_monthly_summary, name='export_monthly'),
+    path('reports/date-range/', views.export_date_range_summary, name='export_date_range'),
 ]
 

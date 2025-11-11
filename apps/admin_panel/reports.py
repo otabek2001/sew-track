@@ -377,3 +377,131 @@ def export_monthly_summary_excel(tenant, year, month):
     wb.save(response)
     return response
 
+
+
+def export_date_range_summary_excel(tenant, start_date, end_date):
+    """Export date range summary report (all employees for custom period)."""
+    
+    # Get all employees
+    employees = Employee.objects.filter(
+        tenant=tenant,
+        is_active=True
+    ).order_by('full_name')
+    
+    # Create workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Davriy hisobot"
+    
+    # Title
+    ws.merge_cells('A1:F1')
+    title_cell = ws['A1']
+    title_cell.value = f"{tenant.name} - Davriy hisobot"
+    title_cell.font = Font(size=16, bold=True, color='FFFFFF')
+    title_cell.alignment = Alignment(horizontal='center', vertical='center')
+    title_cell.fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
+    ws.row_dimensions[1].height = 30
+    
+    # Period
+    ws.merge_cells('A2:F2')
+    period_cell = ws['A2']
+    period_cell.value = f"Davr: {start_date.strftime('%d.%m.%Y')} - {end_date.strftime('%d.%m.%Y')}"
+    period_cell.font = Font(size=12, bold=True)
+    period_cell.alignment = Alignment(horizontal='center')
+    
+    # Headers
+    ws.append([])
+    headers = ['#', 'Xodim', 'Yozuvlar soni', 'Jami mahsulot', 'Tasdiqlangan', 'Jami to\'lov (so\'m)']
+    ws.append(headers)
+    
+    # Style headers
+    header_fill = PatternFill(start_color='D9E1F2', end_color='D9E1F2', fill_type='solid')
+    header_font = Font(bold=True)
+    border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    
+    for col in range(1, 7):
+        cell = ws.cell(row=4, column=col)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.border = border
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+    
+    # Data rows
+    row_num = 5
+    grand_total_records = 0
+    grand_total_quantity = 0
+    grand_total_approved = 0
+    grand_total_payment = 0
+    
+    for idx, employee in enumerate(employees, 1):
+        records = WorkRecord.objects.filter(
+            employee=employee,
+            work_date__gte=start_date,
+            work_date__lte=end_date
+        )
+        
+        total_records = records.count()
+        total_quantity = records.aggregate(Sum('quantity'))['quantity__sum'] or 0
+        approved_count = records.filter(status='approved').count()
+        total_payment = records.filter(status='approved').aggregate(
+            Sum('total_payment')
+        )['total_payment__sum'] or 0
+        
+        row_data = [
+            idx,
+            employee.full_name,
+            total_records,
+            total_quantity,
+            approved_count,
+            total_payment
+        ]
+        
+        ws.append(row_data)
+        
+        # Apply border
+        for col in range(1, 7):
+            cell = ws.cell(row=row_num, column=col)
+            cell.border = border
+            if col in [3, 4, 5, 6]:  # Numbers
+                cell.alignment = Alignment(horizontal='right')
+        
+        grand_total_records += total_records
+        grand_total_quantity += total_quantity
+        grand_total_approved += approved_count
+        grand_total_payment += total_payment
+        row_num += 1
+    
+    # Totals row
+    ws.append([])
+    totals_row = ['', 'JAMI:', grand_total_records, grand_total_quantity, grand_total_approved, grand_total_payment]
+    ws.append(totals_row)
+    
+    # Style totals
+    for col in range(1, 7):
+        cell = ws.cell(row=row_num + 1, column=col)
+        cell.font = Font(bold=True, size=12)
+        cell.border = border
+        if col in [3, 4, 5, 6]:
+            cell.alignment = Alignment(horizontal='right')
+        if col == 6:
+            cell.fill = PatternFill(start_color='FFC000', end_color='FFC000', fill_type='solid')
+    
+    # Adjust column widths
+    column_widths = [5, 25, 15, 15, 15, 20]
+    for i, width in enumerate(column_widths, 1):
+        ws.column_dimensions[get_column_letter(i)].width = width
+    
+    # Prepare response
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename = f"davriy_hisobot_{start_date.strftime('%Y%m%d')}-{end_date.strftime('%Y%m%d')}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    wb.save(response)
+    return response
