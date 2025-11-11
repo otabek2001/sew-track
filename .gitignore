@@ -248,6 +248,12 @@ yarn-debug.log
 secrets/
 private_key.pem
 public_key.pem
+nginx/ssl/*.pem
+nginx/ssl/*.key
+
+# Static files (collected)
+staticfiles/
+static_root/
 
 # Monitoring
 prometheus_data/
