@@ -39,6 +39,15 @@
             <span class="text-xs font-medium">Operatsiyalar</span>
         </a>
         
+        <!-- Reports -->
+        <a 
+            href="{% url 'admin_panel:reports' %}"
+            class="flex flex-col items-center justify-center gap-1 transition {% if 'reports' in request.path %}text-indigo-600{% else %}text-gray-600 hover:text-indigo-600{% endif %}"
+        >
+            <i data-lucide="file-text" class="w-5 h-5"></i>
+            <span class="text-xs font-medium">Hisobotlar</span>
+        </a>
+        
         <!-- Tenants -->
         <a 
             href="{% url 'admin_panel:tenant_list' %}"
@@ -112,6 +121,14 @@
             >
                 <i data-lucide="check-circle" class="w-5 h-5"></i>
                 <span class="font-medium">Tasdiqlash</span>
+            </a>
+            
+            <a 
+                href="{% url 'admin_panel:reports' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg transition {% if 'reports' in request.path %}bg-indigo-100 text-indigo-600{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
+            >
+                <i data-lucide="file-text" class="w-5 h-5"></i>
+                <span class="font-medium">Hisobotlar</span>
             </a>
         </nav>
         

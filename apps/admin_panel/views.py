@@ -16,8 +16,19 @@ from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
-from datetime import date, timedelta
+from django.http import HttpResponse
+from datetime import date, timedelta, datetime
 import re
+
+# Excel/PDF libraries
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
 
 from apps.tenants.models import Tenant, TenantMembership
 from apps.employees.models import Employee
@@ -726,3 +737,92 @@ def product_task_delete(request, product_task_id):
     
     return redirect('admin_panel:product_list')
 
+
+# ============================================================================
+# REPORTS & EXPORT
+# ============================================================================
+
+@login_required
+@user_passes_test(is_owner_or_tenant_admin, login_url='/dashboard/')
+def reports_dashboard(request):
+    """Reports dashboard with export options."""
+    tenant = request.tenant
+    
+    if not tenant:
+        return render(request, 'admin_panel/no_tenant.html')
+    
+    today = date.today()
+    
+    # Quick stats
+    stats = {
+        'total_records': WorkRecord.objects.filter(tenant=tenant).count(),
+        'total_employees': Employee.objects.filter(tenant=tenant, is_active=True).count(),
+        'total_products': Product.objects.filter(tenant=tenant).count(),
+        'today_records': WorkRecord.objects.filter(tenant=tenant, work_date=today).count(),
+    }
+    
+    return render(request, 'admin_panel/reports.html', {
+        'tenant': tenant,
+        'stats': stats,
+    })
+
+
+@login_required
+@user_passes_test(is_owner_or_tenant_admin, login_url='/dashboard/')
+def export_daily_report(request):
+    """Export daily report to Excel."""
+    from .reports import export_daily_report_excel
+    
+    tenant = request.tenant
+    if not tenant:
+        return HttpResponse('No tenant selected', status=400)
+    
+    date_str = request.GET.get('date')
+    if date_str:
+        report_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    else:
+        report_date = date.today()
+    
+    return export_daily_report_excel(tenant, report_date)
+
+
+@login_required
+@user_passes_test(is_owner_or_tenant_admin, login_url='/dashboard/')
+def export_employee_report(request, employee_id):
+    """Export employee report to Excel."""
+    from .reports import export_employee_report_excel
+    
+    tenant = request.tenant
+    if not tenant:
+        return HttpResponse('No tenant selected', status=400)
+    
+    employee = get_object_or_404(Employee, id=employee_id, tenant=tenant)
+    
+    start_date_str = request.GET.get('start_date')
+    end_date_str = request.GET.get('end_date')
+    
+    if start_date_str and end_date_str:
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+    else:
+        today = date.today()
+        start_date = today.replace(day=1)
+        end_date = today
+    
+    return export_employee_report_excel(employee, start_date, end_date)
+
+
+@login_required
+@user_passes_test(is_owner_or_tenant_admin, login_url='/dashboard/')
+def export_monthly_summary(request):
+    """Export monthly summary to Excel."""
+    from .reports import export_monthly_summary_excel
+    
+    tenant = request.tenant
+    if not tenant:
+        return HttpResponse('No tenant selected', status=400)
+    
+    year = int(request.GET.get('year', date.today().year))
+    month = int(request.GET.get('month', date.today().month))
+    
+    return export_monthly_summary_excel(tenant, year, month)

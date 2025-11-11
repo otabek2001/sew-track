@@ -38,5 +38,11 @@ urlpatterns = [
     path('products/<uuid:product_id>/tasks/add/', views.product_task_add, name='product_task_add'),
     path('product-tasks/<uuid:product_task_id>/update/', views.product_task_update, name='product_task_update'),
     path('product-tasks/<uuid:product_task_id>/delete/', views.product_task_delete, name='product_task_delete'),
+    
+    # Reports & Export
+    path('reports/', views.reports_dashboard, name='reports'),
+    path('reports/daily/', views.export_daily_report, name='export_daily'),
+    path('reports/employee/<uuid:employee_id>/', views.export_employee_report, name='export_employee'),
+    path('reports/monthly/', views.export_monthly_summary, name='export_monthly'),
 ]
 
