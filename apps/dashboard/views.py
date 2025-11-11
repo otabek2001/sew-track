@@ -2,13 +2,15 @@
 Dashboard views with mobile-first design.
 """
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Count, Q
+from django.urls import reverse
 from django.utils import timezone
 from datetime import date, timedelta
 import json
 
+from apps.accounts.models import User
 from apps.tasks.models import Task, WorkRecord
 from apps.employees.models import Employee
 
@@ -16,10 +18,20 @@ from apps.employees.models import Employee
 @login_required
 def dashboard(request):
     """
-    Main dashboard view for all user roles.
+    Main dashboard view for worker role.
     Mobile-optimized with quick stats and recent activity.
+    Admin users are redirected to admin panel.
     """
     user = request.user
+    
+    # Redirect admin users to admin panel
+    if user.role in [User.Role.SUPER_ADMIN, User.Role.TENANT_ADMIN]:
+        return redirect('admin_panel:dashboard')
+    
+    # Redirect masters to master panel
+    if user.role == User.Role.MASTER:
+        return redirect('master:dashboard')
+    
     today = date.today()
     
     # Default stats
@@ -61,14 +73,14 @@ def dashboard(request):
 @login_required
 def recent_tasks(request):
     """
-    HTMX partial view for recent tasks.
+    HTMX partial view for recent tasks (worker dashboard only).
     Returns only the HTML fragment for dynamic loading.
     """
     user = request.user
     tasks = []
     
-    # Get recent work records
-    if hasattr(user, 'employee'):
+    # Only show tasks for workers/accountants
+    if user.role in ['worker', 'accountant'] and hasattr(user, 'employee'):
         tasks = WorkRecord.objects.filter(
             employee=user.employee
         ).select_related(
@@ -83,9 +95,19 @@ def recent_tasks(request):
 @login_required
 def statistics(request):
     """
-    Statistics page with charts and detailed analytics.
+    Statistics page with charts and detailed analytics for workers.
+    Admin users are redirected to admin panel.
     """
     user = request.user
+    
+    # Redirect admin users to admin panel
+    if user.role in [User.Role.SUPER_ADMIN, User.Role.TENANT_ADMIN]:
+        return redirect('admin_panel:dashboard')
+    
+    # Redirect masters to master panel
+    if user.role == User.Role.MASTER:
+        return redirect('master:dashboard')
+    
     today = date.today()
     week_start = today - timedelta(days=today.weekday())
     month_start = today.replace(day=1)
@@ -161,8 +183,19 @@ def statistics(request):
 @login_required
 def profile(request):
     """
-    User profile page with settings.
+    User profile page with settings for workers.
+    Admin users are redirected to admin panel.
     """
+    user = request.user
+    
+    # Redirect admin users to admin panel
+    if user.role in [User.Role.SUPER_ADMIN, User.Role.TENANT_ADMIN]:
+        return redirect('admin_panel:dashboard')
+    
+    # Redirect masters to master panel
+    if user.role == User.Role.MASTER:
+        return redirect('master:dashboard')
+    
     return render(request, 'profile.html', {
         'user': request.user,
     })

@@ -105,8 +105,9 @@
     <!-- Main Content -->
     {% block content %}{% endblock %}
     
-    <!-- Mobile Bottom Navigation (only for authenticated users) -->
+    <!-- Mobile Bottom Navigation (only for workers and accountants) -->
     {% if user.is_authenticated and not hide_mobile_nav %}
+        {% if user.role == 'worker' or user.role == 'accountant' %}
     <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40" style="padding-bottom: env(safe-area-inset-bottom);">
         <div class="flex justify-around">
             <a href="{% url 'dashboard:dashboard' %}" class="nav-item touch-feedback {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
@@ -137,6 +138,8 @@
             </a>
         </div>
     </nav>
+        {% endif %}
+    {% endif %}
     
     <style>
         .nav-item {
@@ -159,7 +162,6 @@
             text-decoration: none;
         }
     </style>
-    {% endif %}
     
     <!-- Toast Notifications -->
     <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2">

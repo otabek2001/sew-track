@@ -11,10 +11,13 @@ For owners and tenant administrators to manage:
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from datetime import date, timedelta
+import re
 
 from apps.tenants.models import Tenant, TenantMembership
 from apps.employees.models import Employee
@@ -28,6 +31,35 @@ User = get_user_model()
 def is_owner_or_tenant_admin(user):
     """Check if user is owner or tenant admin."""
     return user.role in [User.Role.SUPER_ADMIN, User.Role.TENANT_ADMIN] or user.is_staff
+
+
+def validate_strong_password(password):
+    """
+    Validate password strength with custom requirements:
+    - At least 8 characters
+    - At least 1 uppercase letter
+    - At least 1 lowercase letter  
+    - At least 1 digit
+    - At least 1 special character
+    """
+    errors = []
+    
+    if len(password) < 8:
+        errors.append('Parol kamida 8 belgidan iborat bo\'lishi kerak.')
+    
+    if not re.search(r'[A-Z]', password):
+        errors.append('Parolda kamida 1 ta katta harf (A-Z) bo\'lishi kerak.')
+    
+    if not re.search(r'[a-z]', password):
+        errors.append('Parolda kamida 1 ta kichik harf (a-z) bo\'lishi kerak.')
+    
+    if not re.search(r'\d', password):
+        errors.append('Parolda kamida 1 ta raqam (0-9) bo\'lishi kerak.')
+    
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+        errors.append('Parolda kamida 1 ta maxsus belgi (!@#$%^&*) bo\'lishi kerak.')
+    
+    return errors
 
 
 @login_required
@@ -243,6 +275,15 @@ def employee_create(request):
                 'tenant': tenant,
             })
         
+        # Validate password strength
+        password_errors = validate_strong_password(password)
+        if password_errors:
+            for error in password_errors:
+                messages.error(request, error)
+            return render(request, 'admin_panel/employee_form.html', {
+                'tenant': tenant,
+            })
+        
         # Check if username exists
         if User.objects.filter(username=username).exists():
             messages.error(request, f'"{username}" username allaqachon mavjud!')
@@ -311,6 +352,20 @@ def employee_edit(request, employee_id):
         hired_at = request.POST.get('hired_at')
         if hired_at:
             employee.hired_at = hired_at
+        
+        # Update password if provided
+        new_password = request.POST.get('new_password')
+        if new_password:
+            password_errors = validate_strong_password(new_password)
+            if password_errors:
+                for error in password_errors:
+                    messages.error(request, error)
+                return render(request, 'admin_panel/employee_form.html', {
+                    'tenant': tenant,
+                    'employee': employee,
+                })
+            employee.user.set_password(new_password)
+            employee.user.save()
         
         employee.save()
         
