@@ -12,7 +12,7 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc postgresql-client libpq-dev \
-    zlib1g-dev libjpeg-dev libpng-dev libopenjp2-7-dev libtiff5 \
+    zlib1g-dev libjpeg-dev libpng-dev libopenjp2-7-dev libtiff-dev \
  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
