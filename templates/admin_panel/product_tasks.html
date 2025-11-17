@@ -47,11 +47,11 @@
                 <div class="grid grid-cols-3 gap-4">
                     <div>
                         <label class="block text-sm font-medium mb-2">Asosiy narx <span class="text-red-500">*</span></label>
-                        <input type="number" name="base_price" required min="0" step="100" placeholder="5000" class="w-full h-12 px-4 border-2 rounded-lg focus:border-green-500">
+                        <input type="number" name="base_price" required min="0" step="10" placeholder="5000" class="w-full h-12 px-4 border-2 rounded-lg focus:border-green-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-2">Premium narx</label>
-                        <input type="number" name="premium_price" min="0" step="100" placeholder="7500" class="w-full h-12 px-4 border-2 rounded-lg focus:border-green-500">
+                        <input type="number" name="premium_price" min="0" step="10" placeholder="7500" class="w-full h-12 px-4 border-2 rounded-lg focus:border-green-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-2">Vaqt (daqiqa)</label>
@@ -103,11 +103,11 @@
                         <div class="grid grid-cols-3 gap-3">
                             <div>
                                 <label class="block text-xs font-medium mb-1">Asosiy narx</label>
-                                <input type="number" name="base_price" value="{{ pt.base_price }}" required min="0" step="100" class="w-full h-10 px-3 border-2 rounded-lg text-sm">
+                                <input type="number" name="base_price" value="{{ pt.base_price }}" required min="0" step="10" class="w-full h-10 px-3 border-2 rounded-lg text-sm">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium mb-1">Premium narx</label>
-                                <input type="number" name="premium_price" value="{{ pt.premium_price }}" min="0" step="100" class="w-full h-10 px-3 border-2 rounded-lg text-sm">
+                                <input type="number" name="premium_price" value="{{ pt.premium_price }}" min="0" step="10" class="w-full h-10 px-3 border-2 rounded-lg text-sm">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium mb-1">Vaqt (daq)</label>
