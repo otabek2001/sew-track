@@ -9,6 +9,8 @@ For owners and tenant administrators to manage:
 - Reports
 """
 
+from decimal import Decimal, InvalidOperation
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.password_validation import validate_password
@@ -71,6 +73,27 @@ def validate_strong_password(password):
         errors.append('Parolda kamida 1 ta maxsus belgi (!@#$%^&*) bo\'lishi kerak.')
     
     return errors
+
+
+def _parse_decimal_input(value):
+    """
+    Normalize decimal input coming from HTML forms.
+    
+    Allows users to type values with spaces or commas and safely converts
+    them to Decimal, returning None for empty strings.
+    """
+    if value is None:
+        return None
+    
+    if isinstance(value, (int, float, Decimal)):
+        value = str(value)
+    
+    normalized = value.strip()
+    if not normalized:
+        return None
+    
+    normalized = normalized.replace(' ', '').replace(',', '.')
+    return Decimal(normalized)
 
 
 @login_required
@@ -708,9 +731,34 @@ def product_task_update(request, product_task_id):
     product_task = get_object_or_404(ProductTask, id=product_task_id, product__tenant=tenant)
     
     if request.method == 'POST':
-        product_task.base_price = request.POST.get('base_price', product_task.base_price)
-        product_task.premium_price = request.POST.get('premium_price', product_task.premium_price)
-        product_task.estimated_minutes = request.POST.get('estimated_minutes', product_task.estimated_minutes)
+        base_price_raw = request.POST.get('base_price', '')
+        premium_price_raw = request.POST.get('premium_price', '')
+        estimated_minutes_raw = request.POST.get('estimated_minutes', '')
+        
+        try:
+            base_price = _parse_decimal_input(base_price_raw)
+            if base_price is None:
+                raise ValueError('Base narx bo\'sh bo\'lishi mumkin emas.')
+            
+            premium_price = _parse_decimal_input(premium_price_raw)
+            if premium_price is None:
+                premium_price = base_price
+        except (InvalidOperation, ValueError):
+            messages.error(request, 'Narx noto\'g\'ri formatda. Iltimos, 12 000.50 yoki 12000,50 kabi qiymat kiriting.')
+            return redirect('admin_panel:product_tasks', product_id=product_task.product_id)
+        
+        if estimated_minutes_raw:
+            try:
+                estimated_minutes = max(0, int(estimated_minutes_raw))
+            except ValueError:
+                messages.error(request, 'Taxminiy vaqt noto\'g\'ri formatda.')
+                return redirect('admin_panel:product_tasks', product_id=product_task.product_id)
+        else:
+            estimated_minutes = product_task.estimated_minutes
+        
+        product_task.base_price = base_price
+        product_task.premium_price = premium_price
+        product_task.estimated_minutes = estimated_minutes
         product_task.save()
         
         messages.success(request, 'Narx yangilandi!')
