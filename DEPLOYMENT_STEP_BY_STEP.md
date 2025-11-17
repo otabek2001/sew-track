@@ -111,7 +111,7 @@ If you keep python:3.14-slim, add system libs so Pillow compiles:
 ```Dockerfile
 RUN apt-get update && apt-get install -y \
     gcc postgresql-client libpq-dev \
-    zlib1g-dev libjpeg-dev libpng-dev libopenjp2-7-dev libtiff5 \
+    zlib1g-dev libjpeg-dev libpng-dev libopenjp2-7-dev libtiff-dev \
  && apt-get clean && rm -rf /var/lib/apt/lists/*
 ```
 
