@@ -107,8 +107,8 @@ def work_record_create(request):
 @login_required
 def get_product_tasks(request, product_id):
     """
-    HTMX endpoint: Get tasks for a specific product.
-    Returns HTML select options.
+    API endpoint: Get tasks for a specific product.
+    Returns JSON data for API calls or HTML for HTMX.
     """
     try:
         product = Product.objects.get(
@@ -122,10 +122,28 @@ def get_product_tasks(request, product_id):
             task__tenant=request.tenant
         ).order_by('task__sequence_order')
         
+        # Check if this is an API request (JSON expected)
+        if request.headers.get('Accept') == 'application/json' or 'api' in request.path:
+            tasks_data = []
+            for pt in product_tasks:
+                tasks_data.append({
+                    'id': str(pt.task.id),
+                    'code': pt.task.code,
+                    'name_uz': pt.task.name_uz,
+                    'name_ru': pt.task.name_ru,
+                    'category': pt.task.category,
+                    'price': float(pt.get_price()),
+                    'sequence_order': pt.task.sequence_order,
+                })
+            return JsonResponse({'tasks': tasks_data})
+        
+        # HTMX request - return HTML
         return render(request, 'work_records/_task_options.html', {
             'product_tasks': product_tasks,
         })
     except Product.DoesNotExist:
+        if request.headers.get('Accept') == 'application/json' or 'api' in request.path:
+            return JsonResponse({'error': 'Product not found'}, status=404)
         return HttpResponse('<option value="">Mahsulot topilmadi</option>')
 
 
