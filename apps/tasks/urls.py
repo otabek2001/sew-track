@@ -13,7 +13,7 @@ urlpatterns = [
     path('work-records/create/', views.work_record_create, name='work_record_create'),
     path('work-records/<uuid:record_id>/', views.work_record_detail, name='work_record_detail'),
     
-    # HTMX endpoints
-    path('api/product/<uuid:product_id>/tasks/', views.get_product_tasks, name='get_product_tasks'),
-    path('api/calculate-price/', views.calculate_price, name='calculate_price'),
+    # API endpoints
+    path('product/<uuid:product_id>/tasks/', views.get_product_tasks, name='get_product_tasks'),
+    path('calculate-price/', views.calculate_price, name='calculate_price'),
 ]
