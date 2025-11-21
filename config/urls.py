@@ -89,7 +89,7 @@ else:
     path('api/v1/accounts/', include('apps.accounts.urls')),
     path('api/v1/employees/', include('apps.employees.urls')),
     path('api/v1/', include('apps.products.urls')),
-]
+
 
 # Debug Toolbar (only in development)
 if settings.DEBUG:
