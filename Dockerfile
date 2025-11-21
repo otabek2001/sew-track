@@ -23,8 +23,8 @@ RUN pip install --no-cache-dir -r requirements/production.txt
 # Copy project
 COPY . .
 
-# Create logs directory
-RUN mkdir -p logs
+# Create logs and static directories
+RUN mkdir -p logs static
 
 # Collect static files
 RUN python manage.py collectstatic --noinput || true
