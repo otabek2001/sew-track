@@ -52,6 +52,9 @@ urlpatterns = [
     # Master Panel
     path('master/', include('apps.master.urls')),
     
+    # Tasks & Work Records (Web UI)
+    path('tasks/', include('apps.tasks.urls')),
+    
     # Additional pages (imported from dashboard views)
     path('statistics/', views.statistics, name='statistics'),
     path('profile/', views.profile, name='profile'),
@@ -67,29 +70,13 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-]
-
-# Serve static and media files in development and production
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-else:
-    # In production, static files are served by WhiteNoise middleware
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    
-    # API Documentation
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-    
-    # Work Records (Web UI)
-    path('', include('apps.tasks.urls')),
     
     # API v1
     path('api/v1/accounts/', include('apps.accounts.urls')),
     path('api/v1/employees/', include('apps.employees.urls')),
+    path('api/v1/tasks/', include('apps.tasks.urls')),
     path('api/v1/', include('apps.products.urls')),
-
+]
 
 # Debug Toolbar (only in development)
 if settings.DEBUG:
@@ -98,7 +85,10 @@ if settings.DEBUG:
         path('__debug__/', include(debug_toolbar.urls)),
     ]
 
-# Static and Media files (only in development)
+# Static and Media files
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
+    # In production, static files are served by WhiteNoise middleware
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
