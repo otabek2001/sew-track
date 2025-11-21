@@ -13,7 +13,7 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 from apps.dashboard import views
-from apps.accounts.web_views import CustomLoginView
+from apps.accounts.web_views import CustomLoginView, CustomLogoutView
 
 
 def home_redirect(request):
@@ -41,7 +41,7 @@ urlpatterns = [
     
     # Authentication
     path('login/', CustomLoginView.as_view(), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
+    path('logout/', CustomLogoutView.as_view(next_page='login'), name='logout'),
     
     # Dashboard (Web UI)
     path('dashboard/', include('apps.dashboard.urls', namespace='dashboard')),

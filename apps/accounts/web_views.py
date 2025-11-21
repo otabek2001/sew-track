@@ -5,6 +5,8 @@ Web views for authentication (non-API).
 from django.contrib.auth import views as auth_views
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.contrib.auth import logout
+from django.http import HttpResponseRedirect
 
 
 class CustomLoginView(auth_views.LoginView):
@@ -39,4 +41,23 @@ class CustomLoginView(auth_views.LoginView):
         
         # Default: Worker dashboard
         return reverse('dashboard:dashboard')
+
+
+class CustomLogoutView(auth_views.LogoutView):
+    """
+    Custom logout view that supports both GET and POST methods.
+    """
+    http_method_names = ['get', 'post']
+    next_page = 'login'  # Default redirect after logout
+    
+    def get(self, request, *args, **kwargs):
+        """Handle GET requests for logout - redirect to login page after logout."""
+        logout(request)
+        # Get the next page URL, defaulting to login
+        next_page = self.get_success_url()
+        return HttpResponseRedirect(next_page)
+    
+    def post(self, request, *args, **kwargs):
+        """Handle POST requests for logout - use default behavior."""
+        return super().post(request, *args, **kwargs)
 
