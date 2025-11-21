@@ -44,16 +44,16 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     
     # Dashboard (Web UI)
-    path('dashboard/', include('apps.dashboard.urls')),
+    path('dashboard/', include('apps.dashboard.urls', namespace='dashboard')),
     
     # Admin Panel (Owner/Tenant Admin)
-    path('admin-panel/', include('apps.admin_panel.urls')),
+    path('admin-panel/', include('apps.admin_panel.urls', namespace='admin_panel')),
     
     # Master Panel
-    path('master/', include('apps.master.urls')),
+    path('master/', include('apps.master.urls', namespace='master')),
     
     # Tasks & Work Records (Web UI)
-    path('tasks/', include('apps.tasks.urls')),
+    path('tasks/', include('apps.tasks.urls', namespace='tasks')),
     
     # Additional pages (imported from dashboard views)
     path('statistics/', views.statistics, name='statistics'),
