@@ -900,3 +900,28 @@ def export_date_range_summary(request):
         end_date = today
     
     return export_date_range_summary_excel(tenant, start_date, end_date)
+
+
+@login_required
+@user_passes_test(is_owner_or_tenant_admin, login_url='/dashboard/')
+def export_detailed_date_range(request):
+    """Export detailed date range report with all individual records."""
+    from .reports import export_detailed_date_range_excel
+    
+    tenant = request.tenant
+    if not tenant:
+        return HttpResponse('No tenant selected', status=400)
+    
+    start_date_str = request.GET.get('start_date')
+    end_date_str = request.GET.get('end_date')
+    
+    if start_date_str and end_date_str:
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+    else:
+        # Default to current month
+        today = date.today()
+        start_date = today.replace(day=1)
+        end_date = today
+    
+    return export_detailed_date_range_excel(tenant, start_date, end_date)
