@@ -27,26 +27,26 @@
 
     <!-- Stats -->
     <div class="container mx-auto px-4 py-4">
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-            <div class="bg-white rounded-lg p-4 border border-gray-200">
-                <p class="text-sm text-gray-600">Jami</p>
-                <p class="text-2xl font-bold text-gray-800">{{ stats.total }}</p>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mb-6">
+            <div class="bg-white rounded-lg p-3 md:p-4 border border-gray-200">
+                <p class="text-xs md:text-sm text-gray-600 mb-1">Jami</p>
+                <p class="text-xl md:text-2xl font-bold text-gray-800">{{ stats.total }}</p>
             </div>
-            <div class="bg-white rounded-lg p-4 border border-gray-200">
-                <p class="text-sm text-gray-600">Kutilmoqda</p>
-                <p class="text-2xl font-bold text-yellow-600">{{ stats.pending }}</p>
+            <div class="bg-white rounded-lg p-3 md:p-4 border border-gray-200">
+                <p class="text-xs md:text-sm text-gray-600 mb-1">Kutilmoqda</p>
+                <p class="text-xl md:text-2xl font-bold text-yellow-600">{{ stats.pending }}</p>
             </div>
-            <div class="bg-white rounded-lg p-4 border border-gray-200">
-                <p class="text-sm text-gray-600">Tasdiqlangan</p>
-                <p class="text-2xl font-bold text-green-600">{{ stats.approved }}</p>
+            <div class="bg-white rounded-lg p-3 md:p-4 border border-gray-200">
+                <p class="text-xs md:text-sm text-gray-600 mb-1">Tasdiqlangan</p>
+                <p class="text-xl md:text-2xl font-bold text-green-600">{{ stats.approved }}</p>
             </div>
-            <div class="bg-white rounded-lg p-4 border border-gray-200">
-                <p class="text-sm text-gray-600">Rad etilgan</p>
-                <p class="text-2xl font-bold text-red-600">{{ stats.rejected }}</p>
+            <div class="bg-white rounded-lg p-3 md:p-4 border border-gray-200">
+                <p class="text-xs md:text-sm text-gray-600 mb-1">Rad etilgan</p>
+                <p class="text-xl md:text-2xl font-bold text-red-600">{{ stats.rejected }}</p>
             </div>
-            <div class="bg-white rounded-lg p-4 border border-gray-200">
-                <p class="text-sm text-gray-600">Bajarilgan</p>
-                <p class="text-2xl font-bold text-blue-600">{{ stats.completed }}</p>
+            <div class="bg-white rounded-lg p-3 md:p-4 border border-gray-200">
+                <p class="text-xs md:text-sm text-gray-600 mb-1">Bajarilgan</p>
+                <p class="text-xl md:text-2xl font-bold text-blue-600">{{ stats.completed }}</p>
             </div>
         </div>
 
@@ -89,17 +89,17 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="md:col-span-3 flex gap-2">
+                <div class="md:col-span-3 flex flex-col sm:flex-row gap-2">
                     <button 
                         type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition"
+                        class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition"
                     >
                         <i data-lucide="search" class="w-4 h-4"></i>
                         <span>Qidirish</span>
                     </button>
                     <a 
                         href="{% url 'admin_panel:work_records_list' %}"
-                        class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition"
+                        class="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition"
                     >
                         <i data-lucide="x" class="w-4 h-4"></i>
                         <span>Tozalash</span>
@@ -108,32 +108,100 @@
             </form>
         </div>
 
-        <!-- Records List -->
-        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <!-- Records List - Mobile Card View -->
+        <div class="md:hidden space-y-3">
+            {% for record in records %}
+            <div class="bg-white rounded-lg border border-gray-200 p-4">
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex-1">
+                        <p class="text-xs text-gray-500 mb-1">{{ record.work_date|date:"d.m.Y" }}</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ record.employee.full_name }}</p>
+                    </div>
+                    <div>
+                        {% if record.status == 'pending' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            Kutilmoqda
+                        </span>
+                        {% elif record.status == 'approved' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Tasdiqlangan
+                        </span>
+                        {% elif record.status == 'rejected' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            Rad etilgan
+                        </span>
+                        {% elif record.status == 'completed' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Bajarilgan
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="space-y-2 mb-3">
+                    <div class="flex justify-between">
+                        <span class="text-xs text-gray-500">Mahsulot:</span>
+                        <span class="text-xs font-medium text-gray-900">{{ record.product.name }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-xs text-gray-500">Operatsiya:</span>
+                        <span class="text-xs font-medium text-gray-900">{{ record.task.name_uz }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-xs text-gray-500">Miqdor:</span>
+                        <span class="text-xs font-medium text-gray-900">{{ record.quantity }}</span>
+                    </div>
+                    <div class="flex justify-between pt-2 border-t border-gray-100">
+                        <span class="text-xs font-medium text-gray-700">Jami:</span>
+                        <span class="text-sm font-bold text-gray-900">{{ record.total_payment|floatformat:0 }} so'm</span>
+                    </div>
+                </div>
+                
+                {% if record.status == 'approved' or record.status == 'rejected' %}
+                <div class="pt-3 border-t border-gray-100">
+                    <a 
+                        href="{% url 'admin_panel:reset_work_record_status' record.id %}"
+                        class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-lg transition"
+                    >
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                        <span>Statusni qaytarish</span>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="bg-white rounded-lg border border-gray-200 p-8 text-center">
+                <p class="text-gray-500">Hech qanday yozuv topilmadi</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Records List - Desktop Table View -->
+        <div class="hidden md:block bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="w-full">
+                <table class="w-full min-w-full">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Sana</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Xodim</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Mahsulot</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Operatsiya</th>
-                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Miqdor</th>
-                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Jami</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">Status</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">Amallar</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Sana</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Xodim</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Mahsulot</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Operatsiya</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Miqdor</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Jami</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Status</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Amallar</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         {% for record in records %}
                         <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-3 text-sm text-gray-900">{{ record.work_date|date:"d.m.Y" }}</td>
-                            <td class="px-4 py-3 text-sm text-gray-900">{{ record.employee.full_name }}</td>
-                            <td class="px-4 py-3 text-sm text-gray-900">{{ record.product.name }}</td>
-                            <td class="px-4 py-3 text-sm text-gray-900">{{ record.task.name_uz }}</td>
-                            <td class="px-4 py-3 text-sm text-gray-900 text-right">{{ record.quantity }}</td>
-                            <td class="px-4 py-3 text-sm text-gray-900 text-right font-medium">{{ record.total_payment|floatformat:0 }} so'm</td>
-                            <td class="px-4 py-3 text-center">
+                            <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{{ record.work_date|date:"d.m.Y" }}</td>
+                            <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{{ record.employee.full_name }}</td>
+                            <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{{ record.product.name }}</td>
+                            <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{{ record.task.name_uz }}</td>
+                            <td class="px-4 py-3 text-sm text-gray-900 text-right whitespace-nowrap">{{ record.quantity }}</td>
+                            <td class="px-4 py-3 text-sm text-gray-900 text-right font-medium whitespace-nowrap">{{ record.total_payment|floatformat:0 }} so'm</td>
+                            <td class="px-4 py-3 text-center whitespace-nowrap">
                                 {% if record.status == 'pending' %}
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                     Kutilmoqda
@@ -152,7 +220,7 @@
                                 </span>
                                 {% endif %}
                             </td>
-                            <td class="px-4 py-3 text-center">
+                            <td class="px-4 py-3 text-center whitespace-nowrap">
                                 {% if record.status == 'approved' or record.status == 'rejected' %}
                                 <a 
                                     href="{% url 'admin_panel:reset_work_record_status' record.id %}"
