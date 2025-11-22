@@ -175,7 +175,7 @@ def export_employee_report_excel(employee, start_date, end_date):
     total_payment = records.aggregate(Sum('total_payment'))['total_payment__sum'] or 0
     approved_records = records.filter(status='approved').count()
     
-    ws.append(['Jami yozuvlar:', total_records])
+    ws.append(['Jami ishlar:', total_records])
     ws.append(['Jami mahsulot:', total_quantity])
     ws.append(['Jami to\'lov:', f"{total_payment:,.0f} so'm"])
     ws.append(['Tasdiqlangan:', approved_records])
@@ -282,7 +282,7 @@ def export_monthly_summary_excel(tenant, year, month):
     
     # Headers
     ws.append([])
-    headers = ['#', 'Xodim', 'Yozuvlar soni', 'Jami mahsulot', 'Tasdiqlangan', 'Jami to\'lov (so\'m)']
+    headers = ['#', 'Xodim', 'Ishlar soni', 'Jami mahsulot', 'Tasdiqlangan', 'Jami to\'lov (so\'m)']
     ws.append(headers)
     
     # Style headers
@@ -411,7 +411,7 @@ def export_date_range_summary_excel(tenant, start_date, end_date):
     
     # Headers
     ws.append([])
-    headers = ['#', 'Xodim', 'Yozuvlar soni', 'Jami mahsulot', 'Tasdiqlangan', 'Jami to\'lov (so\'m)']
+    headers = ['#', 'Xodim', 'Ishlar soni', 'Jami mahsulot', 'Tasdiqlangan', 'Jami to\'lov (so\'m)']
     ws.append(headers)
     
     # Style headers
@@ -501,6 +501,128 @@ def export_date_range_summary_excel(tenant, start_date, end_date):
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
     filename = f"davriy_hisobot_{start_date.strftime('%Y%m%d')}-{end_date.strftime('%Y%m%d')}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    wb.save(response)
+    return response
+
+
+def export_detailed_date_range_excel(tenant, start_date, end_date):
+    """Export detailed date range report with all individual records and date column."""
+    
+    # Get records for the date range
+    records = WorkRecord.objects.filter(
+        tenant=tenant,
+        work_date__gte=start_date,
+        work_date__lte=end_date
+    ).select_related(
+        'employee', 'product', 'task', 'product_task'
+    ).order_by('work_date', 'employee__full_name', 'created_at')
+    
+    # Create workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Batafsil davriy hisobot"
+    
+    # Title
+    ws.merge_cells('A1:I1')
+    title_cell = ws['A1']
+    title_cell.value = f"{tenant.name} - Batafsil davriy hisobot"
+    title_cell.font = Font(size=16, bold=True, color='FFFFFF')
+    title_cell.alignment = Alignment(horizontal='center', vertical='center')
+    title_cell.fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
+    ws.row_dimensions[1].height = 30
+    
+    # Period
+    ws.merge_cells('A2:I2')
+    period_cell = ws['A2']
+    period_cell.value = f"Davr: {start_date.strftime('%d.%m.%Y')} - {end_date.strftime('%d.%m.%Y')}"
+    period_cell.font = Font(size=12, bold=True)
+    period_cell.alignment = Alignment(horizontal='center')
+    
+    # Headers
+    ws.append([])  # Empty row
+    headers = ['#', 'Sana', 'Xodim', 'Mahsulot', 'Operatsiya', 'Miqdor', 'Narx', 'Jami', 'Status']
+    ws.append(headers)
+    
+    # Style headers
+    header_fill = PatternFill(start_color='D9E1F2', end_color='D9E1F2', fill_type='solid')
+    header_font = Font(bold=True)
+    border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    
+    for col in range(1, 10):
+        cell = ws.cell(row=4, column=col)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.border = border
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+    
+    # Data rows
+    row_num = 5
+    total_quantity = 0
+    total_payment = 0
+    
+    status_map = {
+        'pending': 'Kutilmoqda',
+        'approved': 'Tasdiqlangan',
+        'rejected': 'Rad etilgan',
+        'completed': 'Bajarilgan'
+    }
+    
+    for idx, record in enumerate(records, 1):
+        row_data = [
+            idx,
+            record.work_date.strftime('%d.%m.%Y'),
+            record.employee.full_name,
+            record.product.name if record.product else '-',
+            record.task.name_uz if record.task else '-',
+            record.quantity,
+            record.price_per_unit,
+            record.total_payment,
+            status_map.get(record.status, record.status)
+        ]
+        
+        ws.append(row_data)
+        
+        # Apply border to all cells in row
+        for col in range(1, 10):
+            cell = ws.cell(row=row_num, column=col)
+            cell.border = border
+            if col in [6, 7, 8]:  # Numbers
+                cell.alignment = Alignment(horizontal='right')
+        
+        total_quantity += record.quantity
+        total_payment += record.total_payment
+        row_num += 1
+    
+    # Totals row
+    ws.append([])
+    totals_row = ['', '', '', '', 'JAMI:', total_quantity, '', total_payment, '']
+    ws.append(totals_row)
+    
+    # Style totals
+    for col in range(1, 10):
+        cell = ws.cell(row=row_num + 1, column=col)
+        cell.font = Font(bold=True)
+        cell.border = border
+        if col in [6, 8]:
+            cell.alignment = Alignment(horizontal='right')
+    
+    # Adjust column widths
+    column_widths = [5, 12, 25, 20, 20, 10, 12, 15, 15]
+    for i, width in enumerate(column_widths, 1):
+        ws.column_dimensions[get_column_letter(i)].width = width
+    
+    # Prepare response
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename = f"batafsil_davriy_hisobot_{start_date.strftime('%Y%m%d')}-{end_date.strftime('%Y%m%d')}.xlsx"
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     
     wb.save(response)
