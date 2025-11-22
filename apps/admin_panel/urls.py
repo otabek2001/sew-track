@@ -46,5 +46,9 @@ urlpatterns = [
     path('reports/monthly/', views.export_monthly_summary, name='export_monthly'),
     path('reports/date-range/', views.export_date_range_summary, name='export_date_range'),
     path('reports/detailed-date-range/', views.export_detailed_date_range, name='export_detailed_date_range'),
+    
+    # Work Records Management
+    path('work-records/', views.work_records_list, name='work_records_list'),
+    path('work-records/<uuid:record_id>/reset-status/', views.reset_work_record_status, name='reset_work_record_status'),
 ]
 

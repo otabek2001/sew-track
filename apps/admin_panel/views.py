@@ -902,6 +902,115 @@ def export_date_range_summary(request):
     return export_date_range_summary_excel(tenant, start_date, end_date)
 
 
+# ============================================================================
+# WORK RECORDS MANAGEMENT
+# ============================================================================
+
+@login_required
+@user_passes_test(is_owner_or_tenant_admin, login_url='/dashboard/')
+def work_records_list(request):
+    """
+    List all work records for current tenant (admin view).
+    """
+    tenant = request.tenant
+    
+    if not tenant:
+        return render(request, 'admin_panel/no_tenant.html')
+    
+    # Filter parameters
+    date_filter = request.GET.get('date', '')
+    status_filter = request.GET.get('status', 'all')
+    employee_filter = request.GET.get('employee', '')
+    
+    # Base query
+    records = WorkRecord.objects.filter(
+        tenant=tenant
+    ).select_related('employee', 'product', 'task', 'approved_by').order_by('-work_date', '-created_at')
+    
+    # Date filter
+    if date_filter:
+        try:
+            filter_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
+            records = records.filter(work_date=filter_date)
+        except ValueError:
+            pass
+    
+    # Status filter
+    if status_filter != 'all':
+        records = records.filter(status=status_filter)
+    
+    # Employee filter
+    if employee_filter:
+        records = records.filter(employee_id=employee_filter)
+    
+    # Statistics
+    stats = {
+        'total': records.count(),
+        'pending': records.filter(status=WorkRecord.Status.PENDING).count(),
+        'approved': records.filter(status=WorkRecord.Status.APPROVED).count(),
+        'rejected': records.filter(status=WorkRecord.Status.REJECTED).count(),
+        'completed': records.filter(status=WorkRecord.Status.COMPLETED).count(),
+    }
+    
+    # Get employees for filter dropdown
+    employees = Employee.objects.filter(tenant=tenant, is_active=True).order_by('full_name')
+    
+    return render(request, 'admin_panel/work_records_list.html', {
+        'tenant': tenant,
+        'records': records,
+        'stats': stats,
+        'employees': employees,
+        'date_filter': date_filter,
+        'status_filter': status_filter,
+        'employee_filter': employee_filter,
+    })
+
+
+@login_required
+@user_passes_test(is_owner_or_tenant_admin, login_url='/dashboard/')
+def reset_work_record_status(request, record_id):
+    """
+    Reset work record status from approved/rejected back to pending.
+    
+    This allows tenant admin to correct master's mistakes.
+    """
+    tenant = request.tenant
+    
+    if not tenant:
+        return HttpResponse('No tenant selected', status=400)
+    
+    record = get_object_or_404(WorkRecord, id=record_id, tenant=tenant)
+    
+    # Only allow resetting approved or rejected records
+    if record.status not in [WorkRecord.Status.APPROVED, WorkRecord.Status.REJECTED]:
+        messages.error(request, 'Faqat tasdiqlangan yoki rad etilgan yozuvlarni qaytarish mumkin!')
+        return redirect('admin_panel:work_records_list')
+    
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '').strip()
+        
+        # Save old status before resetting
+        old_status = record.status
+        status_text = 'tasdiqlangan' if old_status == WorkRecord.Status.APPROVED else 'rad etilgan'
+        
+        # Reset to pending
+        record.reset_to_pending(reason=reason)
+        
+        messages.success(
+            request,
+            f'Yozuv statusi muvaffaqiyatli pending\'ga qaytarildi! '
+            f'(Oldingi status: {status_text})'
+        )
+        
+        return redirect('admin_panel:work_records_list')
+    
+    # GET request - show confirmation form
+    return render(request, 'admin_panel/reset_status_confirm.html', {
+        'tenant': tenant,
+        'record': record,
+    })
+
+
 @login_required
 @user_passes_test(is_owner_or_tenant_admin, login_url='/dashboard/')
 def export_detailed_date_range(request):
