@@ -219,3 +219,29 @@ class WorkRecord(TimeStampedModel):
         """Mark as completed."""
         self.status = self.Status.COMPLETED
         self.save(update_fields=['status', 'updated_at'])
+    
+    def reset_to_pending(self, reason=''):
+        """
+        Reset status to pending (for tenant admin to correct master's mistakes).
+        
+        This allows tenant admin to reset approved or rejected records back to pending
+        status if master made a mistake. The approval history (approved_by, approved_at)
+        is preserved for audit purposes.
+        
+        Args:
+            reason: Optional reason for resetting (will be added to notes)
+        """
+        from django.utils import timezone
+        
+        old_status = self.status
+        self.status = self.Status.PENDING
+        
+        # Add reason to notes if provided
+        if reason:
+            reset_note = f"\n\n[Status qaytarildi: {old_status} -> pending, {timezone.now().strftime('%d.%m.%Y %H:%M')}]"
+            if self.approved_by:
+                reset_note += f" (Tasdiqlagan: {self.approved_by.full_name})"
+            reset_note += f"\nSabab: {reason}"
+            self.notes = (self.notes or '') + reset_note
+        
+        self.save(update_fields=['status', 'notes', 'updated_at'])
