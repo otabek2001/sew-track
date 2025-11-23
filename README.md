@@ -80,7 +80,7 @@ sew-track/
 
 ```bash
 # Repository ni clone qiling
-git clone https://github.com/yourusername/sew-track.git
+git clone https://github.com/otabek2001/sew-track.git
 cd sew-track
 
 # .env faylini yarating
@@ -201,8 +201,8 @@ Hissa qo'shmoqchi bo'lsangiz:
 ## 📞 Aloqa
 
 **Muallif**: Professional Fullstack Developer  
-**Email**: [your.email@example.com](mailto:your.email@example.com)  
-**Telegram**: [@yourusername](https://t.me/yourusername)
+**Email**: [otabek2001@gmail.com](mailto:otabek2001@gmail.com)  
+**Telegram**: [@otabek_au](https://t.me/otabek_au)
 
 ## 📄 Litsenziya
 
