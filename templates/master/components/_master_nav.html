@@ -14,13 +14,6 @@
             {% endif %}
         </a>
         
-        <a href="{% url 'dashboard:tv' %}" class="nav-item-fab touch-feedback">
-            <div class="bg-purple-600 rounded-full p-3 -mt-8 shadow-lg">
-                <i data-lucide="monitor" class="w-8 h-8 text-white"></i>
-            </div>
-            <span class="text-xs mt-1 text-purple-600 font-medium">TV</span>
-        </a>
-        
         <a href="{% url 'tasks:work_records_list' %}" class="nav-item touch-feedback {% if 'work-records' in request.path %}active{% endif %}">
             <i data-lucide="list" class="w-6 h-6"></i>
             <span class="text-xs mt-1">Ishlar</span>
