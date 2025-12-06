@@ -46,6 +46,11 @@ def is_owner_or_tenant_admin(user):
     return user.role in [User.Role.SUPER_ADMIN, User.Role.TENANT_ADMIN] or user.is_staff
 
 
+def is_owner_or_tenant_admin_or_master(user):
+    """Check if user is owner, tenant admin, or master."""
+    return user.role in [User.Role.SUPER_ADMIN, User.Role.TENANT_ADMIN, User.Role.MASTER] or user.is_staff
+
+
 def validate_strong_password(password):
     """
     Validate password strength with custom requirements:
@@ -907,7 +912,7 @@ def export_date_range_summary(request):
 # ============================================================================
 
 @login_required
-@user_passes_test(is_owner_or_tenant_admin, login_url='/dashboard/')
+@user_passes_test(is_owner_or_tenant_admin_or_master, login_url='/dashboard/')
 def work_records_list(request):
     """
     List all work records for current tenant (admin view).
@@ -967,7 +972,7 @@ def work_records_list(request):
 
 
 @login_required
-@user_passes_test(is_owner_or_tenant_admin, login_url='/dashboard/')
+@user_passes_test(is_owner_or_tenant_admin_or_master, login_url='/dashboard/')
 def reset_work_record_status(request, record_id):
     """
     Reset work record status from approved/rejected back to pending.

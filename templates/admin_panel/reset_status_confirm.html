@@ -4,20 +4,24 @@
 {% block title %}Statusni qaytarish{% if tenant %} - {{ tenant.name }}{% endif %}{% endblock %}
 
 {% block content %}
+{% if 'master' in request.path %}
+<!-- Master Navigation will be included at bottom -->
+{% else %}
 <!-- Admin Navigation -->
 {% include 'admin_panel/components/_admin_nav.html' %}
+{% endif %}
 
-<div class="min-h-screen bg-gray-50 pb-20 md:pb-8 md:ml-64">
+<div class="min-h-screen bg-gray-50 {% if 'master' in request.path %}pb-24 md:pb-8{% else %}pb-20 md:pb-8 md:ml-64{% endif %}">
     <!-- Header -->
-    <header class="bg-white border-b sticky top-0 z-40 shadow-sm md:ml-64">
+    <header class="{% if 'master' in request.path %}bg-gradient-to-r from-purple-600 to-purple-700 text-white{% else %}bg-white border-b{% endif %} sticky top-0 z-40 shadow-sm {% if 'master' not in request.path %}md:ml-64{% endif %}">
         <div class="container mx-auto px-4 py-4">
             <div class="flex items-center gap-3">
-                <a href="{% url 'admin_panel:work_records_list' %}" class="text-gray-600">
+                <a href="{% if redirect_url %}{% url redirect_url %}{% else %}{% url 'admin_panel:work_records_list' %}{% endif %}" class="{% if 'master' in request.path %}text-white{% else %}text-gray-600{% endif %}">
                     <i data-lucide="arrow-left" class="w-6 h-6"></i>
                 </a>
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-800">Statusni qaytarish</h1>
-                    <p class="text-sm text-gray-500">{{ tenant.name }}</p>
+                    <h1 class="text-2xl font-bold {% if 'master' in request.path %}text-white{% else %}text-gray-800{% endif %}">Statusni qaytarish</h1>
+                    <p class="text-sm {% if 'master' in request.path %}text-purple-200{% else %}text-gray-500{% endif %}">{{ tenant.name }}</p>
                 </div>
             </div>
         </div>
@@ -133,7 +137,7 @@
                             <span>Statusni qaytarish</span>
                         </button>
                         <a 
-                            href="{% url 'admin_panel:work_records_list' %}"
+                            href="{% if redirect_url %}{% url redirect_url %}{% else %}{% url 'admin_panel:work_records_list' %}{% endif %}"
                             class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 px-6 rounded-lg transition flex items-center justify-center gap-2"
                         >
                             <i data-lucide="x" class="w-5 h-5"></i>
@@ -145,6 +149,11 @@
         </div>
     </div>
 </div>
+
+{% if 'master' in request.path %}
+<!-- Master Navigation -->
+{% include 'master/components/_master_nav.html' %}
+{% endif %}
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
