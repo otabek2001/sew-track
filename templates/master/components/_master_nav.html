@@ -14,8 +14,13 @@
             {% endif %}
         </a>
         
-        <a href="{% url 'tasks:work_records_list' %}" class="nav-item touch-feedback {% if 'work-records' in request.path %}active{% endif %}">
-            <i data-lucide="list" class="w-6 h-6"></i>
+        <!-- <a href="{% url 'tasks:work_records_list' %}" class="nav-item touch-feedback {% if 'tasks/work-records' in request.path or 'work-records' in request.path and 'admin-panel' not in request.path %}active{% endif %}">
+            <i data-lucide="clipboard-list" class="w-6 h-6"></i>
+            <span class="text-xs mt-1">Ishlar</span>
+        </a> -->
+        
+        <a href="{% url 'master:work_records_list' %}" class="nav-item touch-feedback {% if 'master/work-records' in request.path %}active{% endif %}">
+            <i data-lucide="file-text" class="w-6 h-6"></i>
             <span class="text-xs mt-1">Ishlar</span>
         </a>
         

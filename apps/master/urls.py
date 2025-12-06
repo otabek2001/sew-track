@@ -27,5 +27,9 @@ urlpatterns = [
     # Bulk Actions
     path('bulk-approve/', views.bulk_approve, name='bulk_approve'),
     path('bulk-reject/', views.bulk_reject, name='bulk_reject'),
+    
+    # Work Records List
+    path('work-records/', views.work_records_list, name='work_records_list'),
+    path('work-records/<uuid:record_id>/reset-status/', views.reset_work_record_status, name='reset_work_record_status'),
 ]
 
