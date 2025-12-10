@@ -927,10 +927,20 @@ def work_records_list(request):
     status_filter = request.GET.get('status', 'all')
     employee_filter = request.GET.get('employee', '')
     
+    # Filter parameters
+    paid_filter = request.GET.get('paid', 'unpaid')  # 'unpaid', 'paid', 'all'
+    
     # Base query
     records = WorkRecord.objects.filter(
         tenant=tenant
-    ).select_related('employee', 'product', 'task', 'approved_by').order_by('-work_date', '-created_at')
+    ).select_related('employee', 'product', 'task', 'approved_by', 'paid_by').order_by('-work_date', '-created_at')
+    
+    # Payment filter - by default show only unpaid records
+    if paid_filter == 'unpaid':
+        records = records.filter(is_paid=False)
+    elif paid_filter == 'paid':
+        records = records.filter(is_paid=True)
+    # 'all' shows both paid and unpaid
     
     # Date filter
     if date_filter:
@@ -968,6 +978,7 @@ def work_records_list(request):
         'date_filter': date_filter,
         'status_filter': status_filter,
         'employee_filter': employee_filter,
+        'paid_filter': paid_filter,
     })
 
 

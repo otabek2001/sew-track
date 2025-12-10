@@ -41,9 +41,9 @@ class WorkRecordAdmin(admin.ModelAdmin):
     
     list_display = [
         'id', 'employee_name', 'product_display', 'task_display',
-        'quantity', 'total_payment', 'status_badge', 'work_date', 'created_at'
+        'quantity', 'total_payment', 'status_badge', 'is_paid_badge', 'work_date', 'created_at'
     ]
-    list_filter = ['status', 'work_date', 'product', 'task']
+    list_filter = ['status', 'is_paid', 'work_date', 'product', 'task']
     search_fields = [
         'employee__full_name', 'employee__user__username',
         'product__article_code', 'product__name',
@@ -66,6 +66,10 @@ class WorkRecordAdmin(admin.ModelAdmin):
             'fields': ('approved_by', 'approved_at'),
             'classes': ('collapse',)
         }),
+        ('Payment', {
+            'fields': ('is_paid', 'paid_at', 'paid_by'),
+            'classes': ('collapse',)
+        }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
@@ -74,7 +78,7 @@ class WorkRecordAdmin(admin.ModelAdmin):
     
     readonly_fields = ['created_at', 'updated_at', 'total_payment']
     
-    autocomplete_fields = ['employee', 'product', 'task', 'product_task', 'approved_by']
+    autocomplete_fields = ['employee', 'product', 'task', 'product_task', 'approved_by', 'paid_by']
     
     def employee_name(self, obj):
         """Display employee name with link."""
@@ -111,7 +115,19 @@ class WorkRecordAdmin(admin.ModelAdmin):
     status_badge.short_description = 'Status'
     status_badge.admin_order_field = 'status'
     
-    actions = ['approve_records', 'reject_records']
+    def is_paid_badge(self, obj):
+        """Display payment status with badge."""
+        if obj.is_paid:
+            return format_html(
+                '<span style="background-color: #28A745; color: white; padding: 3px 10px; border-radius: 3px;">✓ To\'langan</span>'
+            )
+        return format_html(
+            '<span style="background-color: #6C757D; color: white; padding: 3px 10px; border-radius: 3px;">To\'lanmagan</span>'
+        )
+    is_paid_badge.short_description = 'To\'lov holati'
+    is_paid_badge.admin_order_field = 'is_paid'
+    
+    actions = ['approve_records', 'reject_records', 'mark_as_paid', 'unmark_as_paid']
     
     def approve_records(self, request, queryset):
         """Bulk approve work records."""
@@ -133,3 +149,28 @@ class WorkRecordAdmin(admin.ModelAdmin):
         )
         self.message_user(request, f'{count} work records rejected.')
     reject_records.short_description = 'Reject selected work records'
+    
+    def mark_as_paid(self, request, queryset):
+        """Mark selected work records as paid."""
+        paid_by = getattr(request.user, 'employee', None)
+        if not paid_by:
+            self.message_user(request, 'Error: You must be an employee to mark records as paid.', level='error')
+            return
+        
+        count = 0
+        for record in queryset.filter(is_paid=False):
+            record.mark_as_paid(paid_by)
+            count += 1
+        
+        self.message_user(request, f'{count} work records marked as paid.')
+    mark_as_paid.short_description = 'Mark selected as paid'
+    
+    def unmark_as_paid(self, request, queryset):
+        """Unmark selected work records as paid."""
+        count = 0
+        for record in queryset.filter(is_paid=True):
+            record.unmark_as_paid()
+            count += 1
+        
+        self.message_user(request, f'{count} work records unmarked as paid.')
+    unmark_as_paid.short_description = 'Unmark selected as paid'

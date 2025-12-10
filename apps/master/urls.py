@@ -31,5 +31,6 @@ urlpatterns = [
     # Work Records List
     path('work-records/', views.work_records_list, name='work_records_list'),
     path('work-records/<uuid:record_id>/reset-status/', views.reset_work_record_status, name='reset_work_record_status'),
+    path('work-records/mark-paid-by-date/', views.mark_records_paid_by_date, name='mark_paid_by_date'),
 ]
 

@@ -31,28 +31,28 @@
         <div x-data="{ dateFilter: '{{ date_filter }}' }">
             <div class="flex gap-2 overflow-x-auto">
                 <a 
-                    href="?date=today&status={{ status_filter }}"
+                    href="?date=today&status={{ status_filter }}&paid={{ paid_filter }}"
                     :class="dateFilter === 'today' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
                     class="px-4 py-2 rounded-lg font-medium whitespace-nowrap transition touch-feedback"
                 >
                     Bugun
                 </a>
                 <a 
-                    href="?date=week&status={{ status_filter }}"
+                    href="?date=week&status={{ status_filter }}&paid={{ paid_filter }}"
                     :class="dateFilter === 'week' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
                     class="px-4 py-2 rounded-lg font-medium whitespace-nowrap transition touch-feedback"
                 >
                     Bu hafta
                 </a>
                 <a 
-                    href="?date=month&status={{ status_filter }}"
+                    href="?date=month&status={{ status_filter }}&paid={{ paid_filter }}"
                     :class="dateFilter === 'month' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
                     class="px-4 py-2 rounded-lg font-medium whitespace-nowrap transition touch-feedback"
                 >
                     Bu oy
                 </a>
                 <a 
-                    href="?date=all&status={{ status_filter }}"
+                    href="?date=all&status={{ status_filter }}&paid={{ paid_filter }}"
                     :class="dateFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
                     class="px-4 py-2 rounded-lg font-medium whitespace-nowrap transition touch-feedback"
                 >
@@ -65,32 +65,59 @@
         <div x-data="{ statusFilter: '{{ status_filter }}' }">
             <div class="flex gap-2 overflow-x-auto">
                 <a 
-                    href="?date={{ date_filter }}&status=all"
+                    href="?date={{ date_filter }}&status=all&paid={{ paid_filter }}"
                     :class="statusFilter === 'all' ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-700'"
                     class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition touch-feedback"
                 >
                     Barchasi
                 </a>
                 <a 
-                    href="?date={{ date_filter }}&status=pending"
+                    href="?date={{ date_filter }}&status=pending&paid={{ paid_filter }}"
                     :class="statusFilter === 'pending' ? 'bg-yellow-500 text-white' : 'bg-gray-100 text-gray-700'"
                     class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition touch-feedback"
                 >
                     Kutilmoqda
                 </a>
                 <a 
-                    href="?date={{ date_filter }}&status=completed"
+                    href="?date={{ date_filter }}&status=completed&paid={{ paid_filter }}"
                     :class="statusFilter === 'completed' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700'"
                     class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition touch-feedback"
                 >
                     Bajarilgan
                 </a>
                 <a 
-                    href="?date={{ date_filter }}&status=approved"
+                    href="?date={{ date_filter }}&status=approved&paid={{ paid_filter }}"
                     :class="statusFilter === 'approved' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'"
                     class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition touch-feedback"
                 >
                     Tasdiqlangan
+                </a>
+            </div>
+        </div>
+
+        <!-- Payment Filter -->
+        <div x-data="{ paidFilter: '{{ paid_filter }}' }">
+            <div class="flex gap-2 overflow-x-auto">
+                <a 
+                    href="?date={{ date_filter }}&status={{ status_filter }}&paid=unpaid"
+                    :class="paidFilter === 'unpaid' ? 'bg-orange-600 text-white' : 'bg-gray-100 text-gray-700'"
+                    class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition touch-feedback"
+                >
+                    To'lanmagan
+                </a>
+                <a 
+                    href="?date={{ date_filter }}&status={{ status_filter }}&paid=paid"
+                    :class="paidFilter === 'paid' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700'"
+                    class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition touch-feedback"
+                >
+                    To'langan
+                </a>
+                <a 
+                    href="?date={{ date_filter }}&status={{ status_filter }}&paid=all"
+                    :class="paidFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
+                    class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition touch-feedback"
+                >
+                    Barchasi
                 </a>
             </div>
         </div>
@@ -125,20 +152,27 @@
                         <h3 class="font-bold text-gray-800 mb-1">{{ record.product.name }}</h3>
                         <p class="text-sm text-gray-600">{{ record.task.name_uz }}</p>
                     </div>
-                    <span class="
-                        px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2
-                        {% if record.status == 'pending' %}
-                            bg-yellow-100 text-yellow-700
-                        {% elif record.status == 'completed' %}
-                            bg-green-100 text-green-700
-                        {% elif record.status == 'approved' %}
-                            bg-blue-100 text-blue-700
-                        {% else %}
-                            bg-red-100 text-red-700
+                    <div class="flex items-center gap-2">
+                        <span class="
+                            px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap
+                            {% if record.status == 'pending' %}
+                                bg-yellow-100 text-yellow-700
+                            {% elif record.status == 'completed' %}
+                                bg-green-100 text-green-700
+                            {% elif record.status == 'approved' %}
+                                bg-blue-100 text-blue-700
+                            {% else %}
+                                bg-red-100 text-red-700
+                            {% endif %}
+                        ">
+                            {{ record.get_status_display }}
+                        </span>
+                        {% if record.is_paid %}
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700" title="To'langan">
+                            ✓ To'langan
+                        </span>
                         {% endif %}
-                    ">
-                        {{ record.get_status_display }}
-                    </span>
+                    </div>
                 </div>
 
                 <!-- Rejection reason (if rejected with notes) -->
