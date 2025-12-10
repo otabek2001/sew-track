@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}To'lov belgilash - {{ tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 pb-24 md:pb-8">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-green-600 to-green-700 text-white sticky top-0 z-30 shadow-lg">
+        <div class="px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <a href="{% url 'master:work_records_list' %}" class="text-white">
+                        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                    </a>
+                    <div>
+                        <h1 class="text-xl font-bold">To'lov belgilash</h1>
+                        <p class="text-green-200 text-sm">{{ tenant.name }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Form -->
+    <div class="p-4">
+        <div class="bg-white rounded-lg border border-gray-200 p-6 max-w-2xl mx-auto">
+            <div class="mb-6">
+                <div class="flex items-center gap-3 mb-2">
+                    <i data-lucide="info" class="w-5 h-5 text-blue-600"></i>
+                    <h2 class="text-lg font-bold text-gray-800">Sanadan oldingi ishlarni to'langan deb belgilash</h2>
+                </div>
+                <p class="text-sm text-gray-600 ml-8">
+                    Muayyan sanadan oldingi barcha ishlarni to'langan deb belgilash orqali, 
+                    ularni joriy ishlardan ajratib qo'yasiz. Bu ishlar keyinchalik filter orqali 
+                    alohida ko'rsatiladi va joriy ishlar bilan aralashmaydi.
+                </p>
+            </div>
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Cutoff Date -->
+                <div>
+                    <label for="cutoff_date" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i data-lucide="calendar" class="w-4 h-4 inline mr-1"></i>
+                        Sanadan oldingi ishlarni belgilash
+                    </label>
+                    <input 
+                        type="date" 
+                        id="cutoff_date"
+                        name="cutoff_date" 
+                        required
+                        class="w-full h-12 px-4 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-4 focus:ring-green-100 focus:outline-none transition text-lg"
+                        max="{{ today|date:'Y-m-d' }}"
+                    >
+                    <p class="mt-2 text-xs text-gray-500">
+                        Bu sanadan oldingi (shu sanani o'z ichiga olgan) barcha to'lanmagan ishlar to'langan deb belgilanadi.
+                    </p>
+                </div>
+
+                <!-- Employee Filter (Optional) -->
+                <div>
+                    <label for="employee" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i data-lucide="user" class="w-4 h-4 inline mr-1"></i>
+                        Xodim (ixtiyoriy)
+                    </label>
+                    <select 
+                        id="employee"
+                        name="employee"
+                        class="w-full h-12 px-4 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-4 focus:ring-green-100 focus:outline-none transition"
+                    >
+                        <option value="">Barcha xodimlar</option>
+                        {% for employee in employees %}
+                        <option value="{{ employee.id }}">{{ employee.full_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="mt-2 text-xs text-gray-500">
+                        Agar xodim tanlansa, faqat shu xodimning ishlari belgilanadi. 
+                        Tanlanmasa, barcha xodimlarning ishlari belgilanadi.
+                    </p>
+                </div>
+
+                <!-- Warning -->
+                <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5"></i>
+                        <div>
+                            <h3 class="font-semibold text-yellow-800 mb-1">Diqqat!</h3>
+                            <ul class="text-sm text-yellow-700 space-y-1 list-disc list-inside">
+                                <li>Bu amalni qaytarib bo'lmaydi (lekin admin panel orqali bitta-bitta qaytarish mumkin)</li>
+                                <li>Faqat to'lanmagan ishlar belgilanadi (allaqachon to'langan ishlar o'zgarmaydi)</li>
+                                <li>Ish statusi (pending, approved, rejected) o'zgarmaydi</li>
+                                <li>Belgilangan ishlar keyinchalik "To'langan" filter orqali ko'rsatiladi</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3 pt-4">
+                    <button 
+                        type="submit"
+                        class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition shadow-md hover:shadow-lg"
+                    >
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                        <span>To'langan deb belgilash</span>
+                    </button>
+                    <a 
+                        href="{% url 'master:work_records_list' %}"
+                        class="flex-1 sm:flex-none bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition"
+                    >
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                        <span>Bekor qilish</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Master Navigation -->
+{% include 'master/components/_master_nav.html' %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+    
+    // Set default date to today
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('cutoff_date');
+    if (dateInput && !dateInput.value) {
+        dateInput.value = today;
+    }
+});
+</script>
+{% endblock %}

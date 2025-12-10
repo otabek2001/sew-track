@@ -46,10 +46,11 @@ def dashboard(request):
     if hasattr(user, 'employee'):
         employee = user.employee
         
-        # Today's statistics
+        # Today's statistics - exclude paid records
         today_records = WorkRecord.objects.filter(
             employee=employee,
-            work_date=today
+            work_date=today,
+            is_paid=False  # Exclude paid records
         )
         
         stats = {
@@ -79,10 +80,11 @@ def recent_tasks(request):
     user = request.user
     tasks = []
     
-    # Only show tasks for workers/accountants
+    # Only show tasks for workers/accountants - exclude paid records
     if user.role in ['worker', 'accountant'] and hasattr(user, 'employee'):
         tasks = WorkRecord.objects.filter(
-            employee=user.employee
+            employee=user.employee,
+            is_paid=False  # Exclude paid records
         ).select_related(
             'product', 'task', 'product_task'
         ).order_by('-created_at')[:5]
@@ -124,32 +126,35 @@ def statistics(request):
     if hasattr(user, 'employee'):
         employee = user.employee
         
-        # Daily stats
+        # Daily stats - exclude paid records
         daily_records = WorkRecord.objects.filter(
             employee=employee,
-            work_date=today
+            work_date=today,
+            is_paid=False  # Exclude paid records
         )
         stats['daily'] = {
             'tasks': daily_records.count(),
             'earnings': daily_records.aggregate(Sum('total_payment'))['total_payment__sum'] or 0,
         }
         
-        # Weekly stats
+        # Weekly stats - exclude paid records
         weekly_records = WorkRecord.objects.filter(
             employee=employee,
             work_date__gte=week_start,
-            work_date__lte=today
+            work_date__lte=today,
+            is_paid=False  # Exclude paid records
         )
         stats['weekly'] = {
             'tasks': weekly_records.count(),
             'earnings': weekly_records.aggregate(Sum('total_payment'))['total_payment__sum'] or 0,
         }
         
-        # Monthly stats
+        # Monthly stats - exclude paid records
         monthly_records = WorkRecord.objects.filter(
             employee=employee,
             work_date__year=today.year,
-            work_date__month=today.month
+            work_date__month=today.month,
+            is_paid=False  # Exclude paid records
         )
         stats['monthly'] = {
             'tasks': monthly_records.count(),
@@ -165,7 +170,8 @@ def statistics(request):
             
             day_count = WorkRecord.objects.filter(
                 employee=employee,
-                work_date=day
+                work_date=day,
+                is_paid=False  # Exclude paid records
             ).aggregate(Sum('quantity'))['quantity__sum'] or 0
             
             chart_data.append(day_count)
@@ -207,10 +213,11 @@ def tv_dashboard(request):
     current_time = now.strftime('%H:%M:%S')
     current_date = now.strftime('%d.%m.%Y, %A')
     
-    # Company-wide statistics for today (current tenant only)
+    # Company-wide statistics for today (current tenant only) - exclude paid records
     today_records = WorkRecord.objects.filter(
         tenant=request.tenant,
-        work_date=today
+        work_date=today,
+        is_paid=False  # Exclude paid records
     )
     
     stats = {
@@ -237,11 +244,12 @@ def tv_dashboard(request):
     for hour in range(start_hour, min(current_hour + 1, 19)):  # Until 18:00
         chart_labels.append(f'{hour:02d}:00')
         
-        # Get production for this hour (current tenant only)
+        # Get production for this hour (current tenant only) - exclude paid records
         hour_production = WorkRecord.objects.filter(
             tenant=request.tenant,
             work_date=today,
-            created_at__hour=hour
+            created_at__hour=hour,
+            is_paid=False  # Exclude paid records
         ).aggregate(Sum('quantity'))['quantity__sum'] or 0
         
         chart_data.append(hour_production)
@@ -264,10 +272,11 @@ def tv_kpi_stats(request):
     """
     today = date.today()
     
-    # Company-wide statistics (current tenant only)
+    # Company-wide statistics (current tenant only) - exclude paid records
     today_records = WorkRecord.objects.filter(
         tenant=request.tenant,
-        work_date=today
+        work_date=today,
+        is_paid=False  # Exclude paid records
     )
     
     stats = {
@@ -293,10 +302,11 @@ def tv_top_performers(request):
     """
     today = date.today()
     
-    # Get top performers for today (current tenant only)
+    # Get top performers for today (current tenant only) - exclude paid records
     top_performers = WorkRecord.objects.filter(
         tenant=request.tenant,
-        work_date=today
+        work_date=today,
+        is_paid=False  # Exclude paid records
     ).values(
         'employee__full_name'
     ).annotate(

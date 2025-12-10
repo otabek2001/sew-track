@@ -194,12 +194,20 @@ def work_records_list(request):
     # Filter parameters
     date_filter = request.GET.get('date', 'today')
     status_filter = request.GET.get('status', 'all')
+    paid_filter = request.GET.get('paid', 'unpaid')  # 'unpaid', 'paid', 'all'
     
     # Base query - filter by tenant and employee
     records = WorkRecord.objects.filter(
         tenant=request.tenant,
         employee=employee
-    ).select_related('product', 'task', 'approved_by')
+    ).select_related('product', 'task', 'approved_by', 'paid_by')
+    
+    # Payment filter - by default show only unpaid records
+    if paid_filter == 'unpaid':
+        records = records.filter(is_paid=False)
+    elif paid_filter == 'paid':
+        records = records.filter(is_paid=True)
+    # 'all' shows both paid and unpaid
     
     # Date filter
     today = date.today()
@@ -232,6 +240,7 @@ def work_records_list(request):
         'stats': stats,
         'date_filter': date_filter,
         'status_filter': status_filter,
+        'paid_filter': paid_filter,
     })
 
 

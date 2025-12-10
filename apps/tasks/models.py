@@ -176,6 +176,26 @@ class WorkRecord(TimeStampedModel):
         blank=True,
         verbose_name='Approved At'
     )
+    is_paid = models.BooleanField(
+        default=False,
+        verbose_name='Is Paid',
+        help_text='Whether this work has been paid to the employee'
+    )
+    paid_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Paid At',
+        help_text='Date and time when payment was processed'
+    )
+    paid_by = models.ForeignKey(
+        'employees.Employee',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='paid_work_records',
+        verbose_name='Paid By',
+        help_text='Employee (Master/Owner) who marked this as paid'
+    )
     
     class Meta:
         db_table = 'work_records'
@@ -190,6 +210,9 @@ class WorkRecord(TimeStampedModel):
             models.Index(fields=['product', 'task']),
             models.Index(fields=['tenant', 'status']),
             models.Index(fields=['tenant', 'work_date']),
+            models.Index(fields=['is_paid']),
+            models.Index(fields=['tenant', 'is_paid']),
+            models.Index(fields=['employee', 'is_paid']),
         ]
     
     def __str__(self):
@@ -245,3 +268,31 @@ class WorkRecord(TimeStampedModel):
             self.notes = (self.notes or '') + reset_note
         
         self.save(update_fields=['status', 'notes', 'updated_at'])
+    
+    def mark_as_paid(self, paid_by):
+        """
+        Mark this work record as paid.
+        
+        This method marks the work as paid without changing its status.
+        The status (pending, rejected, approved) remains unchanged.
+        
+        Args:
+            paid_by: Employee (Master/Owner) who is marking this as paid
+        """
+        from django.utils import timezone
+        
+        self.is_paid = True
+        self.paid_at = timezone.now()
+        self.paid_by = paid_by
+        self.save(update_fields=['is_paid', 'paid_at', 'paid_by', 'updated_at'])
+    
+    def unmark_as_paid(self):
+        """
+        Unmark this work record as paid (reverse payment marking).
+        
+        Useful if payment was marked incorrectly.
+        """
+        self.is_paid = False
+        self.paid_at = None
+        self.paid_by = None
+        self.save(update_fields=['is_paid', 'paid_at', 'paid_by', 'updated_at'])

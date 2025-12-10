@@ -32,10 +32,11 @@ def master_dashboard(request):
     """
     today = date.today()
     
-    # Statistics - filter by current tenant
+    # Statistics - filter by current tenant, exclude paid records
     pending_count = WorkRecord.objects.filter(
         tenant=request.tenant,
-        status=WorkRecord.Status.PENDING
+        status=WorkRecord.Status.PENDING,
+        is_paid=False  # Exclude already paid records
     ).count()
     today_approved = WorkRecord.objects.filter(
         tenant=request.tenant,
@@ -80,12 +81,13 @@ def pending_approvals(request):
     employee_filter = request.GET.get('employee', '')
     product_filter = request.GET.get('product', '')
     
-    # Base query - only pending for current tenant
+    # Base query - only pending for current tenant, exclude paid records
     records = WorkRecord.objects.filter(
         tenant=request.tenant,
-        status=WorkRecord.Status.PENDING
+        status=WorkRecord.Status.PENDING,
+        is_paid=False  # Exclude already paid records
     ).select_related(
-        'employee', 'product', 'task', 'product_task'
+        'employee', 'product', 'task', 'product_task', 'paid_by'
     )
     
     # Date filter
@@ -154,7 +156,8 @@ def approve_record(request, record_id):
             WorkRecord,
             id=record_id,
             tenant=request.tenant,
-            status=WorkRecord.Status.PENDING
+            status=WorkRecord.Status.PENDING,
+            is_paid=False  # Cannot approve already paid records
         )
         
         # Get approver (current user's employee)
@@ -196,7 +199,8 @@ def reject_record(request, record_id):
             WorkRecord,
             id=record_id,
             tenant=request.tenant,
-            status=WorkRecord.Status.PENDING
+            status=WorkRecord.Status.PENDING,
+            is_paid=False  # Cannot approve already paid records
         )
         
         # Get reject reason (optional)
@@ -256,7 +260,8 @@ def bulk_approve(request):
                 record = WorkRecord.objects.get(
                     id=record_id,
                     tenant=request.tenant,
-                    status=WorkRecord.Status.PENDING
+                    status=WorkRecord.Status.PENDING,
+                    is_paid=False  # Cannot approve already paid records
                 )
                 record.approve(approver)
                 count += 1
@@ -299,7 +304,8 @@ def bulk_reject(request):
                 record = WorkRecord.objects.get(
                     id=record_id,
                     tenant=request.tenant,
-                    status=WorkRecord.Status.PENDING
+                    status=WorkRecord.Status.PENDING,
+                    is_paid=False  # Cannot reject already paid records
                 )
                 if reason:
                     record.notes = f"Rad etildi: {reason}"
@@ -348,10 +354,20 @@ def work_records_list(request):
     status_filter = request.GET.get('status', 'all')
     employee_filter = request.GET.get('employee', '')
     
+    # Filter parameters
+    paid_filter = request.GET.get('paid', 'unpaid')  # 'unpaid', 'paid', 'all'
+    
     # Base query
     records = WorkRecord.objects.filter(
         tenant=tenant
-    ).select_related('employee', 'product', 'task', 'approved_by').order_by('-work_date', '-created_at')
+    ).select_related('employee', 'product', 'task', 'approved_by', 'paid_by').order_by('-work_date', '-created_at')
+    
+    # Payment filter - by default show only unpaid records
+    if paid_filter == 'unpaid':
+        records = records.filter(is_paid=False)
+    elif paid_filter == 'paid':
+        records = records.filter(is_paid=True)
+    # 'all' shows both paid and unpaid
     
     # Date filter
     if date_filter:
@@ -389,6 +405,7 @@ def work_records_list(request):
         'date_filter': date_filter,
         'status_filter': status_filter,
         'employee_filter': employee_filter,
+        'paid_filter': paid_filter,
     })
 
 
@@ -433,5 +450,82 @@ def reset_work_record_status(request, record_id):
         'tenant': tenant,
         'record': record,
         'redirect_url': 'master:work_records_list',
+    })
+
+
+@login_required
+@user_passes_test(is_master_or_admin, login_url='/dashboard/')
+def mark_records_paid_by_date(request):
+    """
+    Mark all work records before a specific date as paid.
+    
+    This allows Master/Owner to mark all work up to a certain date as paid,
+    effectively archiving them so they don't mix with current work.
+    """
+    tenant = request.tenant
+    
+    if not tenant:
+        return HttpResponse('No tenant selected', status=400)
+    
+    if request.method == 'POST':
+        cutoff_date_str = request.POST.get('cutoff_date')
+        employee_id = request.POST.get('employee', '')  # Optional: specific employee
+        
+        if not cutoff_date_str:
+            messages.error(request, 'Iltimos, sanani kiriting!')
+            return redirect('master:work_records_list')
+        
+        try:
+            cutoff_date = datetime.strptime(cutoff_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            messages.error(request, 'Noto\'g\'ri sana formati!')
+            return redirect('master:work_records_list')
+        
+        # Get paid_by (current user's employee)
+        paid_by = None
+        if hasattr(request.user, 'employee'):
+            paid_by = request.user.employee
+        
+        if not paid_by:
+            messages.error(request, 'Siz employee sifatida ro\'yxatdan o\'tmagansiz!')
+            return redirect('master:work_records_list')
+        
+        # Build query: records before cutoff_date that are not yet paid
+        records_query = WorkRecord.objects.filter(
+            tenant=tenant,
+            work_date__lte=cutoff_date,  # Before or on cutoff date
+            is_paid=False  # Not already paid
+        )
+        
+        # Optional: filter by specific employee
+        if employee_id:
+            records_query = records_query.filter(employee_id=employee_id)
+        
+        # Mark as paid
+        count = 0
+        for record in records_query:
+            record.mark_as_paid(paid_by)
+            count += 1
+        
+        if employee_id:
+            employee = Employee.objects.get(id=employee_id)
+            messages.success(
+                request,
+                f'{count} ta yozuv "{cutoff_date}" sanasigacha "{employee.full_name}" uchun to\'langan deb belgilandi!'
+            )
+        else:
+            messages.success(
+                request,
+                f'{count} ta yozuv "{cutoff_date}" sanasigacha to\'langan deb belgilandi!'
+            )
+        
+        return redirect('master:work_records_list')
+    
+    # GET request - show form
+    employees = Employee.objects.filter(tenant=tenant, is_active=True).order_by('full_name')
+    return render(request, 'master/mark_paid_by_date.html', {
+        'tenant': tenant,
+        'employees': employees,
+        'today': date.today(),
     })
 
